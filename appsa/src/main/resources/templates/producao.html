@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${tituloPagina}">Produção de Pedidos</title>
+    <link rel="stylesheet" th:href="@{/css/producao.css}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">SA</div>
+                <div>
+                    <strong>Smart Produção</strong>
+                    <span>Controle de pedidos</span>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <a href="#formulario" class="active">Novo pedido</a>
+                <a href="#resumo">Resumo</a>
+                <a href="#pedidos">Pedidos</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header class="page-header">
+                <div>
+                    <p class="eyebrow">Módulo de produção</p>
+                    <h1>Formulário de produção</h1>
+                    <p>Cadastre pedidos simples, duplos ou triplos com blocos e lâminas de forma guiada.</p>
+                </div>
+                <button type="button" id="btnAtualizarPedidos" class="btn btn-secondary">Atualizar lista</button>
+            </header>
+
+            <section id="resumo" class="cards-grid">
+                <article class="metric-card">
+                    <span>Total de pedidos</span>
+                    <strong id="totalPedidos">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Em produção</span>
+                    <strong id="pedidosProducao">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Finalizados</span>
+                    <strong id="pedidosFinalizados">0</strong>
+                </article>
+            </section>
+
+            <section id="formulario" class="panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Cadastro</p>
+                        <h2>Novo pedido</h2>
+                    </div>
+                    <span class="pill">API: /api/pedidos</span>
+                </div>
+
+                <div id="alerta" class="alert hidden"></div>
+
+                <form id="producaoForm" autocomplete="off">
+                    <div class="form-grid">
+                        <label class="field">
+                            <span>Número do pedido</span>
+                            <input type="number" id="numeroPedido" min="1" placeholder="Ex.: 1001" required>
+                        </label>
+
+                        <label class="field">
+                            <span>Tipo de pedido</span>
+                            <select id="tipoPedido" required>
+                                <option value="1">Simples - 1 bloco</option>
+                                <option value="2">Duplo - 2 blocos</option>
+                                <option value="3">Triplo - 3 blocos</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span>Cor da tampa</span>
+                            <input type="number" id="corTampa" min="0" placeholder="Código da cor" required>
+                        </label>
+
+                        <label class="field">
+                            <span>Posição de expedição</span>
+                            <input type="number" id="posicaoExpedicao" min="1" placeholder="Ex.: 1" required>
+                        </label>
+
+                        <label class="field">
+                            <span>Status inicial</span>
+                            <select id="status" required>
+                                <option value="1">1 - Aberto</option>
+                                <option value="2">2 - Em produção</option>
+                                <option value="3">3 - Finalizado</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="section-title">
+                        <div>
+                            <h3>Blocos e lâminas</h3>
+                            <p>O número de blocos é ajustado automaticamente pelo tipo de pedido.</p>
+                        </div>
+                    </div>
+
+                    <div id="blocosContainer" class="blocos-container"></div>
+
+                    <div class="actions">
+                        <button type="button" id="btnLimpar" class="btn btn-secondary">Limpar</button>
+                        <button type="submit" class="btn btn-primary">Salvar pedido</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="pedidos" class="panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Acompanhamento</p>
+                        <h2>Pedidos cadastrados</h2>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Cor tampa</th>
+                                <th>Blocos</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidosTabela">
+                            <tr>
+                                <td colspan="7" class="empty">Carregando pedidos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <template id="blocoTemplate">
+        <article class="bloco-card">
+            <div class="bloco-header">
+                <h4></h4>
+                <span>Máximo 3 lâminas</span>
+            </div>
+
+            <div class="form-grid small">
+                <label class="field">
+                    <span>Andar</span>
+                    <input type="number" class="andar" min="1" required>
+                </label>
+
+                <label class="field">
+                    <span>Cor do bloco</span>
+                    <input type="number" class="corBloco" min="0" required>
+                </label>
+            </div>
+
+            <div class="laminas-header">
+                <strong>Lâminas</strong>
+                <button type="button" class="btn-icon adicionar-lamina">+ Adicionar lâmina</button>
+            </div>
+
+            <div class="laminas-list"></div>
+        </article>
+    </template>
+
+    <template id="laminaTemplate">
+        <div class="lamina-row">
+            <label class="field">
+                <span>Posição</span>
+                <input type="number" class="posicao" min="1" required>
+            </label>
+            <label class="field">
+                <span>Cor</span>
+                <input type="number" class="corLamina" min="0" required>
+            </label>
+            <label class="field">
+                <span>Padrão</span>
+                <input type="number" class="padraoLamina" min="0" required>
+            </label>
+            <button type="button" class="remover-lamina" title="Remover lâmina">×</button>
+        </div>
+    </template>
+
+    <script th:src="@{/js/producao.js}"></script>
+</body>
+</html>
