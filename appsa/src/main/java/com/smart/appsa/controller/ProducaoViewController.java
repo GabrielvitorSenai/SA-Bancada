@@ -17,4 +17,10 @@ public class ProducaoViewController {
         model.addAttribute("tituloPagina", "Produção de Pedidos");
         return "producao";
     }
+
+    @GetMapping("/dashboard")
+public String dashboard(Model model) {
+    model.addAttribute("tituloPagina", "Bancada Smart 4.0 — SENAI Timbó");
+    return "dashboard";
+    }   
 }

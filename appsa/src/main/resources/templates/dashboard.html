@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${tituloPagina} ?: 'Bancada Smart 4.0 — SENAI Timbó'">Bancada Smart 4.0</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <header class="topbar">
+        <h1>Sistema de Gerenciamento — Bancada Smart 4.0 — SENAI · Timbó-SC</h1>
+        <nav class="topnav">
+            <a href="#monitoramento" class="active">Monitoramento</a>
+            <a href="#pedidos">Pedidos</a>
+            <a href="#configurador">Novo Pedido</a>
+        </nav>
+    </header>
+
+    <main class="content">
+        <section class="cards-grid">
+            <article class="metric-card"><span>Estoque ocupado</span><strong id="estoqueOcupado">0/28</strong></article>
+            <article class="metric-card"><span>Expedição ocupada</span><strong id="expedicaoOcupadas">0</strong></article>
+            <article class="metric-card"><span>Total de pedidos</span><strong id="totalPedidos">0</strong></article>
+            <article class="metric-card"><span>Pendentes</span><strong id="pedidosPendentes">0</strong></article>
+        </section>
+
+        <section id="monitoramento" class="panel">
+            <div class="panel-header"><div><p class="eyebrow">Dashboard</p><h2>Painel de Estoque (28 posições)</h2></div><span class="pill">GET /api/estoque/posicoes</span></div>
+            <div id="estoqueGrid" class="estoque-grid"></div>
+            <div class="legenda">
+                <span><i class="swatch" style="background:#e2e8f0"></i> Vazio</span>
+                <span><i class="swatch" style="background:#1f2937"></i> Preto</span>
+                <span><i class="swatch" style="background:#dc2626"></i> Vermelho</span>
+                <span><i class="swatch" style="background:#2563eb"></i> Azul</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header"><div><p class="eyebrow">Dashboard</p><h2>Painel de Expedição (12 posições)</h2></div><span class="pill">GET /api/expedicao</span></div>
+            <div id="expedicaoGrid" class="expedicao-grid"></div>
+        </section>
+
+        <section id="pedidos" class="panel">
+            <div class="panel-header">
+                <div><p class="eyebrow">Ordens de produção</p><h2>Pedidos cadastrados</h2></div>
+                <div class="filtros">
+                    <button class="chip active" data-status="0">Todos</button>
+                    <button class="chip" data-status="1">Pendente</button>
+                    <button class="chip" data-status="2">Produção</button>
+                    <button class="chip" data-status="3">Concluído</button>
+                    <button type="button" id="btnAtualizar" class="btn btn-secondary" style="margin-left:8px;">↻ Atualizar</button>
+                </div>
+            </div>
+            <div id="pedidosGrid" class="pedidos-grid"><div class="empty">Carregando pedidos...</div></div>
+        </section>
+
+        <section id="configurador" class="panel">
+            <div class="panel-header"><div><p class="eyebrow">Cadastro</p><h2>Configurador de pedido</h2></div><span class="pill">POST /api/pedidos</span></div>
+            <div class="config-layout">
+                <form id="producaoForm" autocomplete="off">
+                    <div class="form-grid">
+                        <label class="field"><span>Ordem de produção (nº)</span><input type="number" id="numeroPedido" min="1" placeholder="Ex.: 1001" required></label>
+                        <label class="field"><span>Tipo de pedido</span>
+                            <select id="tipoPedido" required><option value="1">Simples — 1 bloco</option><option value="2">Duplo — 2 blocos</option><option value="3">Triplo — 3 blocos</option></select>
+                        </label>
+                        <label class="field"><span>Cor da tampa</span>
+                            <select id="corTampa" required><option value="1">1 — Preto</option><option value="2">2 — Vermelho</option><option value="3">3 — Azul</option></select>
+                        </label>
+                        <label class="field"><span>Posição de expedição</span><input type="number" id="posicaoExpedicao" min="1" max="12" placeholder="1 a 12" required></label>
+                    </div>
+                    <div class="subhead"><h3>Blocos e lâminas</h3><p>O número de blocos se ajusta ao tipo de pedido.</p></div>
+                    <div id="avisoEstoque" class="pc-status pendente hidden" style="display:block;margin-bottom:14px;"></div>
+                    <div id="blocosContainer" class="blocos-container"></div>
+                    <div class="actions">
+                        <button type="button" id="btnLimpar" class="btn btn-secondary">Limpar</button>
+                        <button type="submit" id="btnSalvar" class="btn btn-primary" disabled>Salvar e enviar à fila</button>
+                    </div>
+                </form>
+                <div class="preview-box">
+                    <h3>Prévia do produto</h3><p class="hint">Composição em tempo real.</p>
+                    <div class="tampa-preview"><div id="tampaSwatch" class="tampa-swatch"></div><small>Tampa: <span id="tampaNome">—</span></small></div>
+                    <div id="blocoPreviewWrap" class="field hidden" style="margin-bottom:14px;"><span style="color:#cdd7e5;">Visualizar bloco</span><select id="blocoPreviewSel"></select></div>
+                    <div id="produtoStage" class="produto-stage"></div>
+                    <div id="previewMeta" class="preview-meta"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <template id="blocoTemplate">
+        <article class="bloco-card">
+            <div class="bloco-header"><h4></h4><span>Máx. 3 lâminas</span></div>
+            <div class="form-grid">
+                <label class="field"><span>Andar</span><input type="number" class="andar" min="1" required></label>
+                <label class="field"><span>Cor do bloco</span><select class="corBloco" required><option value="1">1 — Preto</option><option value="2">2 — Vermelho</option><option value="3">3 — Azul</option></select></label>
+            </div>
+            <div class="laminas-header"><strong>Lâminas</strong><button type="button" class="btn-icon adicionar-lamina">+ Lâmina</button></div>
+            <div class="laminas-list"></div>
+        </article>
+    </template>
+    <template id="laminaTemplate">
+        <div class="lamina-row">
+            <label class="field"><span>Posição</span><select class="posicao"><option value="1">Esquerda</option><option value="2">Frente</option><option value="3">Direita</option></select></label>
+            <label class="field"><span>Cor</span><select class="corLamina"><option value="0">Nenhuma</option><option value="1">Vermelho</option><option value="2">Azul</option><option value="3">Amarelo</option><option value="4">Verde</option><option value="5">Preto</option><option value="6">Branco</option></select></label>
+            <label class="field"><span>Padrão</span><select class="padraoLamina"><option value="0">Nenhum</option><option value="1">Casa</option><option value="2">Navio</option><option value="3">Estrela</option></select></label>
+            <button type="button" class="remover-lamina" title="Remover lâmina">×</button>
+        </div>
+    </template>
+
+    <div id="toast" class="toast"></div>
+    <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
+</body>
+</html>

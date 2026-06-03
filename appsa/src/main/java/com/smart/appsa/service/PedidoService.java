@@ -32,48 +32,34 @@ public class PedidoService {
 
         pedido.getBlocos().forEach(bloco -> {
             bloco.setPedido(pedido);
-
-            bloco.getLaminas().forEach(lamina -> {
-                lamina.setBloco(bloco);
-            });
+            bloco.getLaminas().forEach(lamina -> lamina.setBloco(bloco));
         });
 
         return pedidoRepository.save(pedido);
     }
 
     private void validarTipoPedido(Pedido pedido) {
-
         if (pedido.getTipoPedido() == 3 && pedido.getBlocos().size() != 3) {
-            throw new BusinessException(
-                    "Pedidos triplos exigem exatamente 3 blocos.");
+            throw new BusinessException("Pedidos triplos exigem exatamente 3 blocos.");
         }
-
         if (pedido.getTipoPedido() == 2 && pedido.getBlocos().size() != 2) {
-            throw new BusinessException(
-                    "Pedidos duplos exigem exatamente 2 blocos.");
+            throw new BusinessException("Pedidos duplos exigem exatamente 2 blocos.");
         }
-
         if (pedido.getTipoPedido() == 1 && pedido.getBlocos().size() != 1) {
-            throw new BusinessException(
-                    "Pedidos simples exigem exatamente 1 bloco.");
+            throw new BusinessException("Pedidos simples exigem exatamente 1 bloco.");
         }
     }
 
     private void validarLaminas(Pedido pedido) {
-
         for (Bloco bloco : pedido.getBlocos()) {
-
             if (bloco.getLaminas().size() > 3) {
-                throw new BusinessException(
-                        "Cada bloco pode possuir no máximo 3 lâminas.");
+                throw new BusinessException("Cada bloco pode possuir no máximo 3 lâminas.");
             }
         }
     }
 
     private void validarEstoque(Pedido pedido) {
-
         for (Bloco bloco : pedido.getBlocos()) {
-
             Estoque estoque = estoqueRepository
                     .findByCor(bloco.getCorBloco())
                     .orElseThrow(() -> new BusinessException(
@@ -81,12 +67,10 @@ public class PedidoService {
 
             if (estoque.getQuantidade() <= 0) {
                 throw new BusinessException(
-                        "Quantidade insuficiente em estoque para a cor: "
-                                + bloco.getCorBloco());
+                        "Quantidade insuficiente em estoque para a cor: " + bloco.getCorBloco());
             }
 
             estoque.setQuantidade(estoque.getQuantidade() - 1);
-
             estoqueRepository.save(estoque);
         }
     }
@@ -95,13 +79,31 @@ public class PedidoService {
         return pedidoRepository.findAll();
     }
 
+    /**
+     * Envia o pedido para a fila de produção (status 1 -> 2).
+     * Apenas transição de status; a execução física na bancada (CLP) é um módulo à parte.
+     */
+    public Pedido enviarParaProducao(Long id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
+
+        if (pedido.getStatus() != null && pedido.getStatus() == 3) {
+            throw new BusinessException("Pedido já concluído não pode voltar para produção.");
+        }
+
+        pedido.setStatus(2);
+        return pedidoRepository.save(pedido);
+    }
+
+    /**
+     * Conclui o pedido (status -> 3) e gera o registro na Expedição.
+     */
     public Pedido atualizarStatus(Long id) {
 
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
 
         pedido.setStatus(3);
-
         Pedido pedidoAtualizado = pedidoRepository.save(pedido);
 
         Expedicao expedicao = Expedicao.builder()

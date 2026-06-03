@@ -28,24 +28,24 @@ public class PedidoController {
 
     @GetMapping
     public ResponseEntity<List<Pedido>> listarTodos() {
-
-        return ResponseEntity.ok(
-                pedidoService.listarPedidos());
+        return ResponseEntity.ok(pedidoService.listarPedidos());
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> criarPedido(
-            @RequestBody Pedido pedido) {
-
+    public ResponseEntity<Pedido> criarPedido(@RequestBody Pedido pedido) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(pedidoService.criarPedido(pedido));
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<Pedido> atualizarStatus(
-            @PathVariable Long id) {
+    /** Envia o pedido para a fila de produção (status -> 2). */
+    @PutMapping("/{id}/produzir")
+    public ResponseEntity<Pedido> enviarParaProducao(@PathVariable Long id) {
+        return ResponseEntity.ok(pedidoService.enviarParaProducao(id));
+    }
 
-        return ResponseEntity.ok(
-                pedidoService.atualizarStatus(id));
+    /** Conclui o pedido (status -> 3) e dispara o registro na Expedição. */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Pedido> atualizarStatus(@PathVariable Long id) {
+        return ResponseEntity.ok(pedidoService.atualizarStatus(id));
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.smart.appsa.Entity.Estoque;
+import com.smart.appsa.dto.PosicaoEstoqueDTO;
 import com.smart.appsa.service.EstoqueService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,16 +26,17 @@ public class EstoqueController {
 
     @GetMapping("/disponivel")
     public ResponseEntity<List<Estoque>> listarDisponiveis() {
+        return ResponseEntity.ok(estoqueService.listarDisponiveis());
+    }
 
-        return ResponseEntity.ok(
-                estoqueService.listarDisponiveis());
+    /** Etapa 3 - Mapa Visual: 28 posições com a cor de cada uma. */
+    @GetMapping("/posicoes")
+    public ResponseEntity<List<PosicaoEstoqueDTO>> mapaEstoque() {
+        return ResponseEntity.ok(estoqueService.mapaEstoque());
     }
 
     @PostMapping
-    public ResponseEntity<Estoque> adicionarEstoque(
-            @RequestBody Estoque estoque) {
-
-        return ResponseEntity.ok(
-                estoqueService.adicionarAoEstoque(estoque));
+    public ResponseEntity<Estoque> adicionarEstoque(@RequestBody Estoque estoque) {
+        return ResponseEntity.ok(estoqueService.adicionarAoEstoque(estoque));
     }
 }
