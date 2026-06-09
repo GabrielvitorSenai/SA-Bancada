@@ -23,6 +23,7 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final EstoqueRepository estoqueRepository;
     private final ExpedicaoRepository expedicaoRepository;
+    private final SmartService smartService;
 
     public Pedido criarPedido(Pedido pedido) {
 
@@ -90,6 +91,8 @@ public class PedidoService {
         if (pedido.getStatus() != null && pedido.getStatus() == 3) {
             throw new BusinessException("Pedido já concluído não pode voltar para produção.");
         }
+        
+        smartService.enviarParaProducao(pedido);
 
         pedido.setStatus(2);
         return pedidoRepository.save(pedido);
