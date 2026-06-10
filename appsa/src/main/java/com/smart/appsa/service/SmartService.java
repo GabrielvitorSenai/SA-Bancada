@@ -7,7 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import com.smart.appsa.Entity.Bloco;
 import com.smart.appsa.Entity.Lamina;
@@ -49,22 +56,29 @@ public class SmartService {
 
     public void enviarParaProducao(Pedido pedido) {
         PlcConnector connector = plcConnectionService.getConnection(ipClp);
+    
         if (connector == null) {
             throw new BusinessException("Não foi possível conectar ao CLP: " + ipClp);
         }
-
+    
         byte[] buffer = converterPedidoParaBytes(pedido);
         printHex(buffer);
-
+    
         try {
-            // 1 — grava os 60 bytes no DB9 a partir do offset 2
+            // 1 — seleciona a tampa no ESP32
+            selecionarTampa(pedido.getCorTampa());
+    
+            Thread.sleep(500);
+    
+            // 2 — grava os 60 bytes no DB9 a partir do offset 2
             connector.writeBlock(DB_PEDIDO, OFFSET_DADOS, buffer.length, buffer);
+    
             System.out.printf("[ CLP ] Pedido #%d gravado → DB%d.DBW%d (%d bytes)%n",
                     pedido.getNumeroPedido(), DB_PEDIDO, OFFSET_DADOS, buffer.length);
-
-            // 2 — dispara a execução na bancada
+    
+            // 3 — dispara a execução na bancada
             iniciarExecucaoPedido(connector);
-
+    
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
@@ -239,4 +253,42 @@ public class SmartService {
             default  -> "—";
         };
     }
+    private void selecionarTampa(int tampa) {
+    try {
+        RestTemplate apiSeletorTampa = new RestTemplate();
+
+        String url = "http://10.74.241.245/api/move_pos";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("pos", String.valueOf(tampa));
+        map.add("offset", "0");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+
+        ResponseEntity<Map> response = apiSeletorTampa.postForEntity(url, request, Map.class);
+
+        Map<String, Object> body = response.getBody();
+
+        System.out.println("Resposta do seletor de tampas: " + body);
+
+        if (body == null || body.get("status") == null) {
+            throw new RuntimeException("Seletor de tampas retornou corpo vazio ou sem campo status.");
+        }
+
+        String status = body.get("status").toString();
+
+        if (!status.toLowerCase().contains("ok")) {
+            throw new RuntimeException("Seletor de tampas não confirmou OK. Resposta: " + status);
+        }
+
+        System.out.println("Tampa selecionada com sucesso: " + tampa);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Erro ao comunicar com o seletor de tampas: " + e.getMessage(), e);
+    }
+}
 }
