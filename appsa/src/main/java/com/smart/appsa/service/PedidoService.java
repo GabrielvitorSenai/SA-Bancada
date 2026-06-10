@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.smart.appsa.Entity.Bloco;
 import com.smart.appsa.Entity.Estoque;
@@ -25,11 +26,11 @@ public class PedidoService {
     private final ExpedicaoRepository expedicaoRepository;
     private final SmartService smartService;
 
+    @Transactional
     public Pedido criarPedido(Pedido pedido) {
-
         validarTipoPedido(pedido);
         validarLaminas(pedido);
-        validarEstoque(pedido);
+        validarEstoque(pedido);   // ← já vincula bloco.estoque antes de salvar
 
         pedido.getBlocos().forEach(bloco -> {
             bloco.setPedido(pedido);
@@ -59,6 +60,14 @@ public class PedidoService {
         }
     }
 
+    /**
+     * Valida disponibilidade, decrementa a quantidade e vincula o item de estoque
+     * ao bloco via {@code bloco.setEstoque()}.
+     *
+     * Esse vínculo é indispensável para que o SmartService consiga ler a posição
+     * física (Posicao_Estoque_Andar_X) e gravá-la corretamente no DB9 do CLP.
+     * Sem ele, o braço robótico recebe posição 0 e não sabe onde buscar o bloco.
+     */
     private void validarEstoque(Pedido pedido) {
         for (Bloco bloco : pedido.getBlocos()) {
             Estoque estoque = estoqueRepository
@@ -73,6 +82,10 @@ public class PedidoService {
 
             estoque.setQuantidade(estoque.getQuantidade() - 1);
             estoqueRepository.save(estoque);
+
+            // FIX ① — vincula o estoque ao bloco para que o SmartService
+            //           possa navegar até PosicaoEstoque.posicao sem NPE.
+            bloco.setEstoque(estoque);
         }
     }
 
@@ -81,17 +94,25 @@ public class PedidoService {
     }
 
     /**
-     * Envia o pedido para a fila de produção (status 1 -> 2).
-     * Apenas transição de status; a execução física na bancada (CLP) é um módulo à parte.
+     * Envia o pedido para a fila de produção (status 1 → 2).
+     *
+     * FIX ② — @Transactional mantém a sessão JPA aberta durante toda a chamada,
+     * incluindo a execução do SmartService. Isso permite o carregamento lazy de
+     * Bloco.laminas, Bloco.estoque e Estoque.posicaoEstoque sem
+     * LazyInitializationException.
+     *
+     * FIX ③ — guarda status >= 2 impede reenvio de pedido já em produção.
      */
+    @Transactional
     public Pedido enviarParaProducao(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
 
-        if (pedido.getStatus() != null && pedido.getStatus() == 3) {
-            throw new BusinessException("Pedido já concluído não pode voltar para produção.");
+        if (pedido.getStatus() != null && pedido.getStatus() >= 2) {
+            throw new BusinessException("Pedido já em produção ou concluído.");
         }
-        
+
+        // Comunica com o CLP (pode lançar BusinessException se offline)
         smartService.enviarParaProducao(pedido);
 
         pedido.setStatus(2);
@@ -99,12 +120,16 @@ public class PedidoService {
     }
 
     /**
-     * Conclui o pedido (status -> 3) e gera o registro na Expedição.
+     * Conclui o pedido (status → 3) e gera o registro na Expedição.
      */
+    @Transactional
     public Pedido atualizarStatus(Long id) {
-
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
+
+        if (pedido.getStatus() != null && pedido.getStatus() == 3) {
+            throw new BusinessException("Pedido já concluído.");
+        }
 
         pedido.setStatus(3);
         Pedido pedidoAtualizado = pedidoRepository.save(pedido);
