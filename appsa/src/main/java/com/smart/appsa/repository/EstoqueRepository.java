@@ -17,4 +17,9 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
     Optional<Estoque> findByPosicaoEstoque(PosicaoEstoque posicaoEstoque);
 
     boolean existsByPosicaoEstoque(PosicaoEstoque posicaoEstoque);
+
+    // ===== Camada de leitura dos CLPs (MonitorService / EstoqueClpService) =====
+    // Lista os itens de uma cor ordenados pela posição física (PosicaoEstoque.posicao, 1..28).
+    // O underscore força a navegação para o campo aninhado da entidade relacionada.
+    List<Estoque> findByCorOrderByPosicaoEstoque_PosicaoAsc(Integer cor);
 }
