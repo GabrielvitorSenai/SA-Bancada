@@ -5,18 +5,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smart.appsa.Entity.Bloco;
 import com.smart.appsa.Entity.Estoque;
 import com.smart.appsa.Entity.PosicaoEstoque;
 import com.smart.appsa.Exception.BusinessException;
 import com.smart.appsa.dto.EstoqueRequestDTO;
 import com.smart.appsa.dto.PosicaoEstoqueDTO;
-import com.smart.appsa.repository.BlocoRepository;
 import com.smart.appsa.repository.EstoqueRepository;
 import com.smart.appsa.repository.PosicaoEstoqueRepository;
 
@@ -28,17 +25,24 @@ public class EstoqueService {
 
     private final EstoqueRepository estoqueRepository;
     private final PosicaoEstoqueRepository posicaoRepository;
-    private final BlocoRepository blocoRepository;
 
     public List<Estoque> listarTodos() {
         return estoqueRepository.findAll()
                 .stream()
-                .sorted(Comparator.comparing(e -> e.getPosicaoEstoque().getPosicao()))
+                .sorted(Comparator.comparing(e -> {
+                    if (e.getPosicaoEstoque() == null || e.getPosicaoEstoque().getPosicao() == null) {
+                        return Integer.MAX_VALUE;
+                    }
+                    return e.getPosicaoEstoque().getPosicao();
+                }))
                 .toList();
     }
 
     public List<Estoque> listarDisponiveis() {
-        return estoqueRepository.findByCorNot(0);
+        return estoqueRepository.findByCorNot(0)
+                .stream()
+                .filter(e -> e.getQuantidade() != null && e.getQuantidade() > 0)
+                .toList();
     }
 
     @Transactional
@@ -49,19 +53,23 @@ public class EstoqueService {
                 .findByPosicao(dto.getPosicao())
                 .orElseThrow(() -> new BusinessException("Posição de estoque não existe."));
 
-        if (Boolean.FALSE.equals(posicao.getDisponivel())) {
+        Estoque estoque = estoqueRepository
+                .findByPosicaoEstoque(posicao)
+                .orElseGet(Estoque::new);
+
+        boolean ocupado = estoque.getId() != null
+                && estoque.getCor() != null
+                && estoque.getCor() > 0
+                && estoque.getQuantidade() != null
+                && estoque.getQuantidade() > 0;
+
+        if (ocupado) {
             throw new BusinessException("Posição de estoque já está ocupada.");
         }
 
-        if (estoqueRepository.existsByPosicaoEstoque(posicao)) {
-            throw new BusinessException("Já existe item cadastrado nessa posição.");
-        }
-
-        Estoque estoque = Estoque.builder()
-                .cor(dto.getCor())
-                .quantidade(dto.getQuantidade())
-                .posicaoEstoque(posicao)
-                .build();
+        estoque.setCor(dto.getCor());
+        estoque.setQuantidade(dto.getQuantidade());
+        estoque.setPosicaoEstoque(posicao);
 
         posicao.setDisponivel(false);
         posicaoRepository.save(posicao);
@@ -84,6 +92,17 @@ public class EstoqueService {
             estoque.setQuantidade(dto.getQuantidade());
         }
 
+        PosicaoEstoque posicao = estoque.getPosicaoEstoque();
+        if (posicao != null) {
+            boolean ocupado = estoque.getCor() != null
+                    && estoque.getCor() > 0
+                    && estoque.getQuantidade() != null
+                    && estoque.getQuantidade() > 0;
+
+            posicao.setDisponivel(!ocupado);
+            posicaoRepository.save(posicao);
+        }
+
         return estoqueRepository.save(estoque);
     }
 
@@ -92,15 +111,7 @@ public class EstoqueService {
         Estoque estoque = estoqueRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Item de estoque não encontrado."));
 
-        PosicaoEstoque posicao = estoque.getPosicaoEstoque();
-
-        desvincularBlocos(estoque);   // FIX: evita violação de FK (bloco.estoque_id)
-        estoqueRepository.delete(estoque);
-
-        if (posicao != null) {
-            posicao.setDisponivel(true);
-            posicaoRepository.save(posicao);
-        }
+        limparItemEstoque(estoque);
     }
 
     @Transactional
@@ -109,36 +120,23 @@ public class EstoqueService {
                 .findByPosicao(numeroPosicao)
                 .orElseThrow(() -> new BusinessException("Posição de estoque não existe."));
 
-        Optional<Estoque> estoqueOpt = estoqueRepository.findByPosicaoEstoque(posicao);
+        Estoque estoque = estoqueRepository
+                .findByPosicaoEstoque(posicao)
+                .orElseThrow(() -> new BusinessException("Não existe item nessa posição."));
 
-        if (estoqueOpt.isEmpty()) {
-            throw new BusinessException("Não existe item nessa posição.");
-        }
-
-        Estoque estoque = estoqueOpt.get();
-
-        desvincularBlocos(estoque);   // FIX: evita violação de FK (bloco.estoque_id)
-        estoqueRepository.delete(estoque);
-
-        posicao.setDisponivel(true);
-        posicaoRepository.save(posicao);
+        limparItemEstoque(estoque);
     }
 
-    /**
-     * Antes de remover um item de estoque, quebra o vínculo dos blocos que o
-     * referenciam (bloco.estoque). Sem isso, o MySQL barra o delete por causa da
-     * FK `bloco.estoque_id`.
-     *
-     * Os blocos (que pertencem a pedidos já existentes) são preservados — apenas
-     * deixam de apontar para o estoque removido. A rastreabilidade da posição
-     * física daquele bloco se perde, então só remova posições cujo estoque não
-     * esteja mais em uso por um pedido ativo.
-     */
-    private void desvincularBlocos(Estoque estoque) {
-        List<Bloco> blocos = blocoRepository.findByEstoque(estoque);
-        if (!blocos.isEmpty()) {
-            blocos.forEach(b -> b.setEstoque(null));
-            blocoRepository.saveAll(blocos);
+    private void limparItemEstoque(Estoque estoque) {
+        PosicaoEstoque posicao = estoque.getPosicaoEstoque();
+
+        estoque.setCor(0);
+        estoque.setQuantidade(0);
+        estoqueRepository.save(estoque);
+
+        if (posicao != null) {
+            posicao.setDisponivel(true);
+            posicaoRepository.save(posicao);
         }
     }
 
@@ -158,11 +156,17 @@ public class EstoqueService {
         for (PosicaoEstoque posicao : posicaoRepository.findAll()) {
             Estoque item = itensPorPosicao.get(posicao.getPosicao());
 
+            boolean ocupado = item != null
+                    && item.getCor() != null
+                    && item.getCor() > 0
+                    && item.getQuantidade() != null
+                    && item.getQuantidade() > 0;
+
             mapa.add(PosicaoEstoqueDTO.builder()
                     .posicao(posicao.getPosicao())
-                    .disponivel(item == null)
-                    .idItem(item != null ? item.getId() : null)
-                    .cor(item != null && item.getCor() != null ? item.getCor() : 0)
+                    .disponivel(!ocupado)
+                    .idItem(ocupado ? item.getId() : null)
+                    .cor(ocupado ? item.getCor() : 0)
                     .build());
         }
 
@@ -185,8 +189,8 @@ public class EstoqueService {
     }
 
     private void validarCor(Integer cor) {
-        if (cor == null || cor < 1) {
-            throw new BusinessException("Cor inválida.");
+        if (cor == null || cor < 1 || cor > 3) {
+            throw new BusinessException("Cor inválida. Use 1=preto, 2=vermelho ou 3=azul.");
         }
     }
 

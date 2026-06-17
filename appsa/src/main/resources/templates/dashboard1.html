@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${tituloPagina} ?: 'Smart 4.0 | Bancada SENAI'">Smart 4.0 | Bancada SENAI</title>
+
+    <!-- CSS principal modularizado por blocos dentro do arquivo. -->
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
+</head>
+<body>
+    <!-- Barra superior e navegação principal. -->
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/metrics :: metrics}"></div>
+        <div th:replace="~{fragments/clp-panel :: clpPanel}"></div>
+        <div th:replace="~{fragments/monitoramento :: monitoramento}"></div>
+        <div th:replace="~{fragments/estoque-manager :: estoqueManager}"></div>
+        <div th:replace="~{fragments/pedidos :: pedidos}"></div>
+        <div th:replace="~{fragments/pedido-form :: pedidoForm}"></div>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!--
+        JavaScript com ES Modules.
+        Cada módulo cuida de uma parte da tela: CLP, estoque, pedidos, formulário e preview.
+    -->
+    <script type="module" th:src="@{/js/app.js}" src="/js/app.js"></script>
+</body>
+</html>

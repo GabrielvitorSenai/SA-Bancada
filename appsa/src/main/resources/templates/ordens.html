@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Ordens de Produção')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="page-shell">
+        <header th:replace="~{fragments/topbar :: topbar('Ordens de Produção', 'Acompanhe, envie para produção e finalize pedidos.')}"></header>
+
+        <section class="page-content">
+            <div class="metrics-grid">
+                <article class="metric-card"><span>Pendentes</span><strong id="ordensPendentes">0</strong></article>
+                <article class="metric-card"><span>Em produção</span><strong id="ordensProducao">0</strong></article>
+                <article class="metric-card success"><span>Concluídas</span><strong id="ordensConcluidas">0</strong></article>
+                <article class="metric-card"><span>Atualizado</span><strong id="ordensAtualizada">-</strong></article>
+            </div>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Fila</p>
+                        <h2>Pedidos</h2>
+                    </div>
+                    <button id="btnReloadOrdens" class="btn btn-secondary" type="button">Atualizar</button>
+                </div>
+
+                <div class="filters">
+                    <button class="chip active" data-status="0" type="button">Todos</button>
+                    <button class="chip" data-status="1" type="button">Pendentes</button>
+                    <button class="chip" data-status="2" type="button">Em produção</button>
+                    <button class="chip" data-status="3" type="button">Concluídos</button>
+                </div>
+
+                <div id="ordensGrid" class="orders-grid"></div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<div th:replace="~{fragments/toast :: toast}"></div>
+<script th:src="@{/js/core/api.js}"></script>
+<script th:src="@{/js/core/ui.js}"></script>
+<script th:src="@{/js/pages/ordens.js}"></script>
+</body>
+</html>

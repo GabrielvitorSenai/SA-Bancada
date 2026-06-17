@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Expedição')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="page-shell">
+        <header th:replace="~{fragments/topbar :: topbar('Expedição', 'Pedidos finalizados, posições ocupadas e limpeza da memória do CLP.')}"></header>
+
+        <section class="page-content">
+            <div class="metrics-grid">
+                <article class="metric-card success"><span>Ocupadas</span><strong id="expOcupadas">0</strong></article>
+                <article class="metric-card"><span>Livres</span><strong id="expLivres">12</strong></article>
+                <article class="metric-card"><span>Pedido finalizado</span><strong id="statusPedidoFinalizado">-</strong></article>
+                <article class="metric-card"><span>Atualizado</span><strong id="expAtualizada">-</strong></article>
+            </div>
+
+            <div class="metrics-grid compact-metrics">
+                <article class="metric-card"><span>Status expedição</span><strong id="statusExpedicao">-</strong></article>
+                <article class="metric-card"><span>Status produção</span><strong id="statusProducao">-</strong></article>
+            </div>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Magazine de saída</p>
+                        <h2>Posições da expedição</h2>
+                        <p class="muted">O botão limpar chama o backend para zerar a memória do CLP e remover do banco.</p>
+                    </div>
+                    <button id="btnReloadExp" class="btn btn-secondary" type="button">Atualizar</button>
+                </div>
+
+                <div id="expedicaoGrid" class="expedicao-grid"></div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<div th:replace="~{fragments/toast :: toast}"></div>
+<script th:src="@{/js/core/api.js}"></script>
+<script th:src="@{/js/core/ui.js}"></script>
+<script th:src="@{/js/pages/expedicao.js}"></script>
+</body>
+</html>

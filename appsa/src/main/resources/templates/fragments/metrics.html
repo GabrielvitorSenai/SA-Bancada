@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="metrics" class="metrics-grid" aria-label="Resumo do sistema">
+    <article class="metric-card">
+        <span>Estoque ocupado</span>
+        <strong id="metricEstoque">0/28</strong>
+    </article>
+
+    <article class="metric-card">
+        <span>Expedição ocupada</span>
+        <strong id="metricExpedicao">0/12</strong>
+    </article>
+
+    <article class="metric-card">
+        <span>Total de pedidos</span>
+        <strong id="metricPedidos">0</strong>
+    </article>
+
+    <article class="metric-card metric-card--status">
+        <span>Status da bancada</span>
+        <strong id="metricClpStatus">Offline</strong>
+    </article>
+</section>
+</body>
+</html>

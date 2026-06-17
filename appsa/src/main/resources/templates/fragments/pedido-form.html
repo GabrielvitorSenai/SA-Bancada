@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="pedidoForm" id="configurador" class="panel">
+    <div class="panel__header">
+        <div>
+            <p class="eyebrow">Cadastro</p>
+            <h2>Novo pedido</h2>
+        </div>
+        <span class="pill">POST /api/pedidos</span>
+    </div>
+
+    <div class="order-layout">
+        <form id="pedidoForm" class="order-form" autocomplete="off">
+            <div class="form-grid">
+                <label class="field">
+                    <span>Número da OP</span>
+                    <input id="numeroPedido" type="number" min="1" required placeholder="Ex.: 1001">
+                </label>
+
+                <label class="field">
+                    <span>Tipo do pedido</span>
+                    <select id="tipoPedido" required>
+                        <option value="1">Simples — 1 bloco</option>
+                        <option value="2">Duplo — 2 blocos</option>
+                        <option value="3">Triplo — 3 blocos</option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Cor da tampa</span>
+                    <select id="corTampa" required>
+                        <option value="1">1 — Preto</option>
+                        <option value="2">2 — Vermelho</option>
+                        <option value="3">3 — Azul</option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Posição de expedição</span>
+                    <input id="posicaoExpedicao" type="number" min="1" max="12" required placeholder="1 a 12">
+                </label>
+            </div>
+
+            <div id="inventoryWarning" class="notice notice--warning is-hidden"></div>
+
+            <div class="panel__subheader">
+                <h3>Blocos e lâminas</h3>
+                <small>O formulário muda automaticamente conforme o tipo do pedido.</small>
+            </div>
+
+            <div id="blocosContainer" class="blocks-list"></div>
+
+            <div class="button-row button-row--end">
+                <button id="btnClearOrder" type="button" class="btn btn--ghost">Limpar</button>
+                <button id="btnSaveOrder" type="submit" class="btn btn--primary">Salvar pedido</button>
+            </div>
+        </form>
+
+        <aside class="preview-card">
+            <div class="preview-card__header">
+                <div>
+                    <p class="eyebrow eyebrow--light">Prévia</p>
+                    <h3>Produto configurado</h3>
+                </div>
+                <span id="previewTipo" class="pill pill--dark">Simples</span>
+            </div>
+
+            <div id="produtoPreview" class="product-preview"></div>
+            <div id="previewResumo" class="preview-summary"></div>
+        </aside>
+    </div>
+
+    <template id="blocoTemplate">
+        <article class="block-card">
+            <div class="block-card__header">
+                <h4></h4>
+                <span>Máx. 3 lâminas</span>
+            </div>
+
+            <div class="form-grid form-grid--compact">
+                <label class="field">
+                    <span>Andar</span>
+                    <input type="number" class="andar" min="1" required>
+                </label>
+
+                <label class="field">
+                    <span>Cor do bloco</span>
+                    <select class="corBloco" required>
+                        <option value="1">1 — Preto</option>
+                        <option value="2">2 — Vermelho</option>
+                        <option value="3">3 — Azul</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="lamina-toolbar">
+                <strong>Lâminas</strong>
+                <button type="button" class="btn btn--small btn--soft add-lamina">+ Lâmina</button>
+            </div>
+
+            <div class="laminas-list"></div>
+        </article>
+    </template>
+
+    <template id="laminaTemplate">
+        <div class="lamina-row">
+            <label class="field">
+                <span>Posição</span>
+                <select class="posicao">
+                    <option value="1">Esquerda</option>
+                    <option value="2">Frente</option>
+                    <option value="3">Direita</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Cor</span>
+                <select class="corLamina">
+                    <option value="0">Nenhuma</option>
+                    <option value="1">Vermelho</option>
+                    <option value="2">Azul</option>
+                    <option value="3">Amarelo</option>
+                    <option value="4">Verde</option>
+                    <option value="5">Preto</option>
+                    <option value="6">Branco</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Padrão</span>
+                <select class="padraoLamina">
+                    <option value="0">Nenhum</option>
+                    <option value="1">Casa</option>
+                    <option value="2">Navio</option>
+                    <option value="3">Estrela</option>
+                </select>
+            </label>
+
+            <button type="button" class="btn-remove-lamina" title="Remover lâmina">×</button>
+        </div>
+    </template>
+</section>
+</body>
+</html>

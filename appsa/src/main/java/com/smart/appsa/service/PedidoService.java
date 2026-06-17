@@ -1,7 +1,10 @@
 package com.smart.appsa.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,10 +13,12 @@ import com.smart.appsa.Entity.Bloco;
 import com.smart.appsa.Entity.Estoque;
 import com.smart.appsa.Entity.Expedicao;
 import com.smart.appsa.Entity.Pedido;
+import com.smart.appsa.Entity.PosicaoEstoque;
 import com.smart.appsa.Exception.BusinessException;
 import com.smart.appsa.repository.EstoqueRepository;
 import com.smart.appsa.repository.ExpedicaoRepository;
 import com.smart.appsa.repository.PedidoRepository;
+import com.smart.appsa.repository.PosicaoEstoqueRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,69 +28,125 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final EstoqueRepository estoqueRepository;
+    private final PosicaoEstoqueRepository posicaoEstoqueRepository;
     private final ExpedicaoRepository expedicaoRepository;
     private final SmartService smartService;
+    private final ExpedicaoClpService expedicaoClpService;
 
     @Transactional
     public Pedido criarPedido(Pedido pedido) {
         validarTipoPedido(pedido);
         validarLaminas(pedido);
-        validarEstoque(pedido);   // ← já vincula bloco.estoque antes de salvar
+        validarEstoque(pedido);
 
         pedido.getBlocos().forEach(bloco -> {
             bloco.setPedido(pedido);
-            bloco.getLaminas().forEach(lamina -> lamina.setBloco(bloco));
+
+            if (bloco.getLaminas() != null) {
+                bloco.getLaminas().forEach(lamina -> lamina.setBloco(bloco));
+            }
         });
+
+        if (pedido.getStatus() == null) {
+            pedido.setStatus(1);
+        }
 
         return pedidoRepository.save(pedido);
     }
 
     private void validarTipoPedido(Pedido pedido) {
-        if (pedido.getTipoPedido() == 3 && pedido.getBlocos().size() != 3) {
+        if (pedido == null) {
+            throw new BusinessException("Pedido não informado.");
+        }
+
+        if (pedido.getTipoPedido() == null) {
+            throw new BusinessException("Tipo do pedido não informado.");
+        }
+
+        if (pedido.getBlocos() == null || pedido.getBlocos().isEmpty()) {
+            throw new BusinessException("Pedido precisa possuir pelo menos um bloco.");
+        }
+
+        int quantidadeBlocos = pedido.getBlocos().size();
+
+        if (pedido.getTipoPedido() == 3 && quantidadeBlocos != 3) {
             throw new BusinessException("Pedidos triplos exigem exatamente 3 blocos.");
         }
-        if (pedido.getTipoPedido() == 2 && pedido.getBlocos().size() != 2) {
+
+        if (pedido.getTipoPedido() == 2 && quantidadeBlocos != 2) {
             throw new BusinessException("Pedidos duplos exigem exatamente 2 blocos.");
         }
-        if (pedido.getTipoPedido() == 1 && pedido.getBlocos().size() != 1) {
+
+        if (pedido.getTipoPedido() == 1 && quantidadeBlocos != 1) {
             throw new BusinessException("Pedidos simples exigem exatamente 1 bloco.");
+        }
+
+        if (pedido.getTipoPedido() < 1 || pedido.getTipoPedido() > 3) {
+            throw new BusinessException("Tipo de pedido inválido. Use 1, 2 ou 3.");
         }
     }
 
     private void validarLaminas(Pedido pedido) {
         for (Bloco bloco : pedido.getBlocos()) {
+            if (bloco.getLaminas() == null) {
+                throw new BusinessException("Cada bloco precisa possuir a lista de lâminas.");
+            }
+
             if (bloco.getLaminas().size() > 3) {
                 throw new BusinessException("Cada bloco pode possuir no máximo 3 lâminas.");
             }
         }
     }
 
-    /**
-     * Valida disponibilidade, decrementa a quantidade e vincula o item de estoque
-     * ao bloco via {@code bloco.setEstoque()}.
-     *
-     * Esse vínculo é indispensável para que o SmartService consiga ler a posição
-     * física (Posicao_Estoque_Andar_X) e gravá-la corretamente no DB9 do CLP.
-     * Sem ele, o braço robótico recebe posição 0 e não sabe onde buscar o bloco.
-     */
     private void validarEstoque(Pedido pedido) {
-        for (Bloco bloco : pedido.getBlocos()) {
-            Estoque estoque = estoqueRepository
-                    .findByCor(bloco.getCorBloco())
-                    .orElseThrow(() -> new BusinessException(
-                            "Não existe estoque para a cor do bloco."));
+        Set<Integer> posicoesUsadasNestePedido = new HashSet<>();
 
-            if (estoque.getQuantidade() <= 0) {
-                throw new BusinessException(
-                        "Quantidade insuficiente em estoque para a cor: " + bloco.getCorBloco());
+        List<Bloco> blocosOrdenados = pedido.getBlocos()
+                .stream()
+                .sorted(Comparator.comparing(
+                        Bloco::getAndar,
+                        Comparator.nullsLast(Integer::compareTo)
+                ))
+                .toList();
+
+        for (Bloco bloco : blocosOrdenados) {
+            Integer corSolicitada = bloco.getCorBloco();
+
+            if (corSolicitada == null || corSolicitada < 1 || corSolicitada > 3) {
+                throw new BusinessException("Cor de bloco inválida. Use 1=preto, 2=vermelho ou 3=azul.");
             }
 
-            estoque.setQuantidade(estoque.getQuantidade() - 1);
-            estoqueRepository.save(estoque);
+            Estoque estoqueSelecionado = estoqueRepository
+                    .findByCorOrderByPosicaoEstoque_PosicaoAsc(corSolicitada)
+                    .stream()
+                    .filter(e -> e.getPosicaoEstoque() != null)
+                    .filter(e -> e.getPosicaoEstoque().getPosicao() != null)
+                    .filter(e -> e.getQuantidade() != null && e.getQuantidade() > 0)
+                    .filter(e -> !posicoesUsadasNestePedido.contains(e.getPosicaoEstoque().getPosicao()))
+                    .findFirst()
+                    .orElseThrow(() -> new BusinessException(
+                            "Não existe posição disponível no estoque para a cor: " + corSolicitada
+                    ));
 
-            // FIX ① — vincula o estoque ao bloco para que o SmartService
-            //           possa navegar até PosicaoEstoque.posicao sem NPE.
-            bloco.setEstoque(estoque);
+            PosicaoEstoque posicao = estoqueSelecionado.getPosicaoEstoque();
+            Integer posicaoFisica = posicao.getPosicao();
+
+            posicoesUsadasNestePedido.add(posicaoFisica);
+
+            estoqueSelecionado.setQuantidade(0);
+            estoqueSelecionado.setCor(0);
+            estoqueRepository.save(estoqueSelecionado);
+
+            posicao.setDisponivel(true);
+            posicaoEstoqueRepository.save(posicao);
+
+            bloco.setEstoque(estoqueSelecionado);
+
+            System.out.printf(
+                    "[ESTOQUE] Bloco cor %d vinculado à posição física %d%n",
+                    corSolicitada,
+                    posicaoFisica
+            );
         }
     }
 
@@ -93,16 +154,6 @@ public class PedidoService {
         return pedidoRepository.findAll();
     }
 
-    /**
-     * Envia o pedido para a fila de produção (status 1 → 2).
-     *
-     * FIX ② — @Transactional mantém a sessão JPA aberta durante toda a chamada,
-     * incluindo a execução do SmartService. Isso permite o carregamento lazy de
-     * Bloco.laminas, Bloco.estoque e Estoque.posicaoEstoque sem
-     * LazyInitializationException.
-     *
-     * FIX ③ — guarda status >= 2 impede reenvio de pedido já em produção.
-     */
     @Transactional
     public Pedido enviarParaProducao(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
@@ -112,16 +163,12 @@ public class PedidoService {
             throw new BusinessException("Pedido já em produção ou concluído.");
         }
 
-        // Comunica com o CLP (pode lançar BusinessException se offline)
         smartService.enviarParaProducao(pedido);
 
         pedido.setStatus(2);
         return pedidoRepository.save(pedido);
     }
 
-    /**
-     * Conclui o pedido (status → 3) e gera o registro na Expedição.
-     */
     @Transactional
     public Pedido atualizarStatus(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
@@ -130,6 +177,8 @@ public class PedidoService {
         if (pedido.getStatus() != null && pedido.getStatus() == 3) {
             throw new BusinessException("Pedido já concluído.");
         }
+
+        expedicaoClpService.gravarPedidoFinalizadoNaMemoria(pedido);
 
         pedido.setStatus(3);
         Pedido pedidoAtualizado = pedidoRepository.save(pedido);

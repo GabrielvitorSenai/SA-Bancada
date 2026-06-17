@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Criar Pedido')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="page-shell">
+        <header th:replace="~{fragments/topbar :: topbar('Criar Pedido', 'Monte a ordem de produção com blocos, tampa e lâminas.')}"></header>
+
+        <section class="page-content order-layout">
+            <form id="pedidoForm" class="panel">
+                <div class="panel-header vertical">
+                    <p class="eyebrow">Novo pedido</p>
+                    <h2>Configuração da ordem</h2>
+                </div>
+
+                <div class="form-grid">
+                    <label class="field"><span>Número do pedido</span><input id="numeroPedido" type="number" required></label>
+                    <label class="field"><span>Tipo</span><select id="tipoPedido"><option value="1">Simples - 1 andar</option><option value="2">Duplo - 2 andares</option><option value="3">Triplo - 3 andares</option></select></label>
+                    <label class="field"><span>Cor da tampa</span><select id="corTampa"><option value="1">Preto</option><option value="2">Vermelho</option><option value="3">Azul</option></select></label>
+                    <label class="field"><span>Posição expedição</span><select id="posicaoExpedicao"><option value="1">Posição 1</option><option value="2">Posição 2</option><option value="3">Posição 3</option><option value="4">Posição 4</option><option value="5">Posição 5</option><option value="6">Posição 6</option><option value="7">Posição 7</option><option value="8">Posição 8</option><option value="9">Posição 9</option><option value="10">Posição 10</option><option value="11">Posição 11</option><option value="12">Posição 12</option></select></label>
+                </div>
+
+                <div class="section-inline-title">
+                    <h3>Blocos e lâminas</h3>
+                    <button id="btnAddLamina" class="btn btn-light" type="button">Info lâminas</button>
+                </div>
+
+                <div id="blocosContainer" class="blocos-container"></div>
+
+                <div class="actions end">
+                    <a class="btn btn-secondary" href="/ordens">Ver ordens</a>
+                    <button class="btn btn-primary" type="submit">Criar pedido</button>
+                </div>
+            </form>
+
+            <aside class="panel preview-panel">
+                <p class="eyebrow">Prévia</p>
+                <h2>Pedido configurado</h2>
+                <div class="product-stage">
+                    <div id="pedidoPreview"></div>
+                </div>
+            </aside>
+        </section>
+    </main>
+</div>
+
+<div th:replace="~{fragments/toast :: toast}"></div>
+<script th:src="@{/js/core/api.js}"></script>
+<script th:src="@{/js/core/ui.js}"></script>
+<script th:src="@{/js/pages/pedido-novo.js}"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Conexão da Bancada')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="page-shell">
+        <header th:replace="~{fragments/topbar :: topbar('Conexão da Bancada', 'Informe apenas o IP do primeiro CLP. Os demais são calculados automaticamente.')}"></header>
+
+        <section class="page-content hero-grid">
+            <article class="panel connection-panel">
+                <div class="panel-header vertical">
+                    <p class="eyebrow">Configuração</p>
+                    <h2>IP base</h2>
+                    <p class="muted">Use o primeiro CLP, exemplo: <strong>10.74.241.10</strong>.</p>
+                </div>
+
+                <div class="connection-form">
+                    <label class="field big-field">
+                        <span>IP do CLP de estoque</span>
+                        <input id="baseIp" type="text" placeholder="10.74.241.10">
+                    </label>
+
+                    <div class="derived-grid">
+                        <div><span>Estoque</span><strong id="ip-estoque">-</strong></div>
+                        <div><span>Processo</span><strong id="ip-processo">-</strong></div>
+                        <div><span>Montagem</span><strong id="ip-montagem">-</strong></div>
+                        <div><span>Expedição</span><strong id="ip-expedicao">-</strong></div>
+                    </div>
+
+                    <div class="actions wrap">
+                        <button id="btnPing" class="btn btn-secondary" type="button">Testar porta 102</button>
+                        <button id="btnConnect" class="btn btn-primary" type="button">Conectar bancada</button>
+                        <button id="btnStop" class="btn btn-warning" type="button">Parar leituras</button>
+                    </div>
+
+                    <pre id="connectionLog" class="console">Aguardando conexão...</pre>
+                </div>
+            </article>
+
+            <article class="panel visual-panel">
+                <img class="bancada-img" th:src="@{/assets/bancada/Smart40.png}" alt="Bancada Smart 4.0">
+
+                <div class="station-status-grid">
+                    <div class="station-card" data-station-card="estoque"><img th:src="@{/assets/status/estoqueIcone.png}" alt=""><div><span>Estoque</span><strong>Aguardando</strong></div></div>
+                    <div class="station-card" data-station-card="processo"><img th:src="@{/assets/status/laminasIcone.png}" alt=""><div><span>Processo</span><strong>Aguardando</strong></div></div>
+                    <div class="station-card" data-station-card="montagem"><img th:src="@{/assets/status/montagemIcone.png}" alt=""><div><span>Montagem</span><strong>Aguardando</strong></div></div>
+                    <div class="station-card" data-station-card="expedicao"><img th:src="@{/assets/status/expedicaoIcone.png}" alt=""><div><span>Expedição</span><strong>Aguardando</strong></div></div>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<div th:replace="~{fragments/toast :: toast}"></div>
+<script th:src="@{/js/core/api.js}"></script>
+<script th:src="@{/js/core/ui.js}"></script>
+<script th:src="@{/js/pages/connection.js}"></script>
+</body>
+</html>

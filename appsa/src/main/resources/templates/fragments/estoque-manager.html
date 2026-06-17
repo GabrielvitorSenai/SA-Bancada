@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="estoqueManager" id="gerenciarEstoque" class="panel">
+    <div class="panel__header">
+        <div>
+            <p class="eyebrow">Gerenciamento</p>
+            <h2>Estoque da bancada</h2>
+        </div>
+        <span class="pill">POST /api/estoque</span>
+    </div>
+
+    <div class="manager-layout">
+        <div>
+            <div class="panel__subheader">
+                <h3>Selecionar posição</h3>
+                <small>As posições ocupadas aparecem coloridas.</small>
+            </div>
+            <div id="estoqueManagerGrid" class="stock-grid stock-grid--manager"></div>
+        </div>
+
+        <aside class="form-card">
+            <h3>Adicionar ou liberar posição</h3>
+
+            <label class="field">
+                <span>Posição</span>
+                <select id="stockPosition">
+                    <option value="">Selecione uma posição</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Cor do bloco</span>
+                <select id="stockColor">
+                    <option value="">Selecione</option>
+                    <option value="1">1 — Preto</option>
+                    <option value="2">2 — Vermelho</option>
+                    <option value="3">3 — Azul</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Quantidade</span>
+                <input id="stockQuantity" type="number" min="1" value="1">
+            </label>
+
+            <div class="button-column">
+                <button id="btnStockAdd" type="button" class="btn btn--primary">Adicionar ao estoque</button>
+                <button id="btnStockRemove" type="button" class="btn btn--danger">Liberar posição</button>
+            </div>
+
+            <p class="helper-text">
+                A liberação não deve apagar histórico vinculado a pedidos. O backend deve marcar a posição como livre.
+            </p>
+        </aside>
+    </div>
+</section>
+</body>
+</html>

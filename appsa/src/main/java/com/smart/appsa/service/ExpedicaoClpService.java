@@ -1,79 +1,87 @@
 package com.smart.appsa.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.smart.appsa.Entity.Expedicao;
+import com.smart.appsa.Entity.Pedido;
+import com.smart.appsa.Exception.BusinessException;
 import com.smart.appsa.clpcomm.PlcConnectionService;
 import com.smart.appsa.clpcomm.PlcConnector;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.smart.appsa.repository.ExpedicaoRepository;
+import com.smart.appsa.repository.PedidoRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ExpedicaoClpService {
 
-    //********************** Expedição *************************
-    //----------------------- NodeToPlc ------------------------
-    /*---- StatusOP -------*/
-    boolean recebidoOpExp = false;
-    /*---- GerenciamentoExpedicao -------*/
-    boolean recebidoExpedicao = false;
-    boolean iniciarGuardarExp = false;
-    int posicaoGuardarExp = 0;
+    private final PlcConnectionService plcConnectionService;
+    private final ExpedicaoRepository expedicaoRepository;
+    private final PedidoRepository pedidoRepository;
 
-    /*---- RemoverPedido -------*/
-    int[] orderExpedicao = new int[12];
+    @Value("${smart40.clp.expedicao-ip:10.74.241.40}")
+    private String ipClpExpedicao;
 
-    //public static int posicaoExpedicaoSolicitada = 0;
-    //----------------------- PlcToNode ------------------------
-    /*---- StatusOP ------------------*/
-    int numeroOPExp = 0;
-    boolean cancelOPExp = false;
-    boolean finishOPExp = false;
-    boolean startOPExp = false;
+    private boolean recebidoOpExp = false;
+    private boolean recebidoExpedicao = false;
+    private boolean iniciarGuardarExp = false;
+    private int posicaoGuardarExp = 0;
 
-    /*---- StatusEstacao -------*/
-    boolean ocupadoExp = false;
-    boolean aguardandoExp = false;
-    boolean manualExp = false;
-    boolean emergenciaExp = false;
+    private final int[] orderExpedicao = new int[12];
 
-    /*---- GerenciamentoEstoque ------*/
-    boolean pedirPosicaoExp = false;
-    int posicaoGuardadoExpedicao = 0;
-    int posicaoRemovidoExpedicao = 0;
-    boolean adicionarExpedicao = false;
-    boolean removerExpedicao = false;
-    int opGuardadoExpedicao = 0;
+    private int numeroOPExp = 0;
+    private boolean cancelOPExp = false;
+    private boolean finishOPExp = false;
+    private boolean startOPExp = false;
 
-    @Autowired
-    private PlcConnectionService plcConnectionService;
+    private boolean ocupadoExp = false;
+    private boolean aguardandoExp = false;
+    private boolean manualExp = false;
+    private boolean emergenciaExp = false;
 
-    @Autowired
-    private ExpedicaoRepository expedicaoRepository;
+    private boolean pedirPosicaoExp = false;
+    private int posicaoGuardadoExpedicao = 0;
+    private int posicaoRemovidoExpedicao = 0;
+    private boolean adicionarExpedicao = false;
+    private boolean removerExpedicao = false;
+    private int opGuardadoExpedicao = 0;
 
-    @Autowired
-    private ApiIntegrationService apiIntegrationService;
+    public List<Expedicao> listarExpedicao() {
+        return expedicaoRepository.findAll();
+    }
 
+    /**
+     * Leitura cíclica do CLP de expedição.
+     * Esse método é chamado pelo ClpController através do PlcReaderDB.
+     */
+    @Transactional
     public void processData(String ip, byte[] dadosClp4) {
-        // lógica que hoje está no método clpExpedicao(...)
-
-        //-------------- Apresentação no console -----------------
-        StringBuilder leituraClp4 = new StringBuilder();
-        for (byte b : dadosClp4) {
-            leituraClp4.append(String.format("%02X ", b));
+        if (dadosClp4 == null || dadosClp4.length < 46) {
+            return;
         }
-        String clp4 = leituraClp4.toString().trim();
-        //System.out.println("[CLP4] " + clp4);
 
         PlcConnector plcConnectorExp = plcConnectionService.getConnection(ip);
+
         if (plcConnectorExp == null) {
             return;
         }
-        //-------------- Leitura das variáveis -------------------
+
+        lerVariaveis(dadosClp4);
+
+        tratarStatusOperacao(plcConnectorExp);
+        tratarPedidoDePosicao(plcConnectorExp);
+        tratarAdicionarExpedicao(plcConnectorExp);
+        tratarRemoverExpedicao(plcConnectorExp);
+        tratarFinalizacaoAutomatica();
+    }
+
+    private void lerVariaveis(byte[] dadosClp4) {
         recebidoOpExp = (dadosClp4[0] & 0x01) != 0;
 
         recebidoExpedicao = (dadosClp4[2] & 0x01) != 0;
@@ -82,7 +90,7 @@ public class ExpedicaoClpService {
 
         int x = 0;
         for (int c = 0; c < 24; c += 2) {
-            orderExpedicao[x] = (int) ((dadosClp4[c + 6] & 0xFF) << 8) | (dadosClp4[c + 7] & 0xFF);
+            orderExpedicao[x] = ((dadosClp4[c + 6] & 0xFF) << 8) | (dadosClp4[c + 7] & 0xFF);
             x++;
         }
 
@@ -102,262 +110,301 @@ public class ExpedicaoClpService {
         adicionarExpedicao = (dadosClp4[42] & 0x01) != 0;
         removerExpedicao = (dadosClp4[42] & 0x02) != 0;
         opGuardadoExpedicao = ((dadosClp4[44] & 0xFF) << 8) | (dadosClp4[45] & 0xFF);
+    }
 
-        // System.out.println("StatusEstoque: " + statusEstoque + "\n"
-        //         + "StatusProcesso: " + statusProcesso + "\n"
-        //         + "StatusMontagem: " + statusMontagem + "\n"
-        //         + "StatusExpedicao: " + statusExpedicao + "\n");
-        // Se as três flags (StartOPExp, FinishOPExp e CancelOPExp) estão em FALSE, então a flag
-        // RecebidoOPExp fica em FALSE
-        if (startOPExp == false & finishOPExp == false & cancelOPExp == false) {
-            if (MonitorService.readOnly == false) {
-                try {
-
-                    //System.out.println("(startOPExp == false & finishOPExp == false & cancelOPExp == false): Atualização da Flag RecebidoOPExp [DB9:2.0] para FALSE");
-                    plcConnectorExp.writeBit(9, 0, 0, Boolean.parseBoolean("FALSE")); // coloca RecebidoOPExp em FALSE
-
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [startOp][finishOp]: Atualização da Flag RecebidoOPExp [DB9:0.0] para FALSE");
-                }
-
-            }
-        }
-
-        // Se o pedido foi finalizado pela estação de MONTAGEM e a estação EXPEDIÇÃO
-        // informou que iniciou a operação
-        // então a flag recebidoOpExp fica em TRUE
-        if (startOPExp == true & recebidoOpExp == false) {
-            if (MonitorService.statusProducao == 0 & MonitorService.pedidoEmCurso == true) {
-                MonitorService.statusExpedicao = 1;
-            } else {
-                //statusExpedicao = 0;
-            }
-            // blockFinished = true;
-            // updateDisplayStation();
-            if (MonitorService.readOnly == false) {
-                try {
-                    plcConnectorExp.writeBit(9, 0, 0, Boolean.parseBoolean("TRUE")); // coloca RecebidoOPExp em TRUE
-
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [startOp]: Atualização da Flag RecebidoOPExp [DB9:0.0] para TRUE");
-                }
-
-            }
-        }
-
-        // Se a estação EXPEDIÇÃO sinalizou o término da operação e ficou OCUPADO, então
-        // a flag RecebidoOP fica em TRUE
-        if (finishOPExp == true & recebidoOpExp == false) {
-            if (MonitorService.readOnly == false) {
-                // JOptionPane.showMessageDialog(null, "1 - Vou iniciar a guarda do BLOCO!!!");
-
-                try {
-                    // Panel3.plcWrite = new PlcConnector(ipExpedicao, 9, 0, 1, 0, 1);
-                    plcConnectorExp.writeBit(9, 0, 0, Boolean.parseBoolean("TRUE")); // coloca RecebidoOPExp em TRUE
-                    MonitorService.blockFinished = true;
-
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [finishOp]: Atualização da Flag RecebidoOPExp [DB9:0.0] para TRUE");
-                }
-                if (MonitorService.statusProducao == 0 & MonitorService.pedidoEmCurso == true) {
-                    MonitorService.statusExpedicao = 2;
-                } else {
-                    //statusExpedicao = 0;
-
-                }
-            }
-        }
-
-        if (pedirPosicaoExp == false) {
-            if (!MonitorService.readOnly) {
-                MonitorService.aux_expedicao = false;
-                // Coloca a flag IniciarGuardar em FALSE
-                try {
-                    plcConnectorExp.writeBit(9, 2, 1, Boolean.parseBoolean("FALSE"));  // coloca  IniciarGuardar em FALSE
-
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [Pedir Posição]: Atualização da Flag IniciarGuardar [DB9:2.1] para FALSE");
-                }
-            }
-        }
-
-        // verifica se Expedição pede posição para guardar
-        if ((pedirPosicaoExp == true) & MonitorService.aux_expedicao == false) {
-
-            //System.out.println(
-            //       "\n\nEstou aqui -  if ((pedirPosicaoExp == true) & aux_expedicao == false)\n\n");
-            // Rotina para verificar qual posição está disponível para guardar
-            MonitorService.aux_expedicao = true;
-
-            // ROTINA PARA LOCALIZAR POSIÇÃO DISPONÍVEL NO MAGAZINE DA EXPEDIÇÃO PARA
-            // ADICIONAR BLOCO CONCLUÍDO
-            // Rotina para verificar qual posição está disponível para guardar
-            if (!MonitorService.readOnly) {
-
-                // Solicita posição disponível para guardar (0-LIVRE 1-OCUPADA)
-                // Certifique-se de que posExpedicaoLivre é seguro para acesso
-                //int posExpedicaoLivre = posicaoExpedicaoSolicitada/*getPositionExpedicao()*/;
-                //System.out.println("Posição disponível no Magazine Expedição: " + posExpedicaoLivre);
-                // Atualiza a variável PosicaoGuardarExpedicao no CLP EXPEDIÇÂO
-                try {
-                    plcConnectorExp.writeInt(9, 4, MonitorService.posicaoExpedicaoSolicitada);   // Atualiza a variável PosicaoGuardarExpedicao no CLP EXPEDIÇÂO
-
-                } catch (Exception e) {
-                    System.out.println("ERRO: Atualização da PosicaoGuardarExpedicao [DB9:4]");
-                }
-
-                try {
-                    plcConnectorExp.writeBit(9, 2, 1, Boolean.parseBoolean("TRUE")); // coloca IniciarGuardar em TRUE
-
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [Pedir Posição]: Atualização da Flag IniciarGuardar [DB9:2.1] para TRUE");
-                }
-
-            }
-
-        }
-
-        if (!MonitorService.readOnly & (!adicionarExpedicao || !removerExpedicao)) {
+    private void tratarStatusOperacao(PlcConnector plc) {
+        if (!MonitorService.readOnly && !startOPExp && !finishOPExp && !cancelOPExp) {
             try {
-                //System.out.println("(!readOnly & (!adicionarExpedicao || !removerExpedicao)): Atualização da Flag RecebidoExpedicao [DB9:2.0] para FALSE");
-                plcConnectorExp.writeBit(9, 2, 0, false); // coloca RecebidoExpedicao em FALSE
+                plc.writeBit(9, 0, 0, false);
             } catch (Exception e) {
-                if (!adicionarExpedicao & !removerExpedicao) {
-                    System.out.println("ERRO [Adicionar e Remover Expedição]: Atualização da Flag RecebidoExpedicao [DB9:2.0] para FALSE");
-                } else if (!adicionarExpedicao) {
-                    System.out.println("ERRO [Adicionar Expedição]: Atualização da Flag RecebidoExpedicao [DB9:2.0] para FALSE");
-                } else {
-                    System.out.println("ERRO [Remover Expedição]: Atualização da Flag RecebidoExpedicao [DB9:2.0] para FALSE");
+                System.out.println("ERRO: não conseguiu limpar RecebidoOPExp DB9.DBX0.0");
+            }
+        }
+
+        if (startOPExp && !recebidoOpExp) {
+            MonitorService.statusExpedicao = 1;
+
+            if (!MonitorService.readOnly) {
+                try {
+                    plc.writeBit(9, 0, 0, true);
+                } catch (Exception e) {
+                    System.out.println("ERRO: não conseguiu confirmar StartOPExp DB9.DBX0.0");
                 }
             }
         }
 
-        // Se a flag adicionarExpedicao está TRUE E aux_expedicao está FALSE então a flag RecebidoExpedicao fica em TRUE
-        if ((adicionarExpedicao == true) & MonitorService.aux_expedicao == false) {
+        if (finishOPExp && !recebidoOpExp) {
+            MonitorService.statusExpedicao = 2;
+            MonitorService.blockFinished = true;
+
+            if (!MonitorService.readOnly) {
+                try {
+                    plc.writeBit(9, 0, 0, true);
+                } catch (Exception e) {
+                    System.out.println("ERRO: não conseguiu confirmar FinishOPExp DB9.DBX0.0");
+                }
+            }
+        }
+    }
+
+    /**
+     * Quando o CLP pedir posição para guardar, o backend responde a primeira posição
+     * livre da expedição.
+     */
+    private void tratarPedidoDePosicao(PlcConnector plc) {
+        if (!pedirPosicaoExp) {
+            MonitorService.aux_expedicao = false;
+
+            if (!MonitorService.readOnly) {
+                try {
+                    plc.writeBit(9, 2, 1, false);
+                } catch (Exception e) {
+                    System.out.println("ERRO: não conseguiu limpar IniciarGuardarExp DB9.DBX2.1");
+                }
+            }
+
+            return;
+        }
+
+        if (pedirPosicaoExp && !MonitorService.aux_expedicao && !MonitorService.readOnly) {
             MonitorService.aux_expedicao = true;
 
-            // Ler as variáveis PosicaoGuardadoExpedicao e opGuardadoExpedicao
-            if (MonitorService.readOnly == false) {
+            int posicaoLivre = buscarPrimeiraPosicaoLivreExp();
 
-                try {
-                    // Panel3.plcWrite = new PlcConnector(ipExpedicao, 9, 2, 1, 0, 1);
-                    plcConnectorExp.writeBit(9, 2, 0, Boolean.parseBoolean("TRUE")); // coloca RecebidoExpedicao em TRUE
-
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [Adicionar Expedição]: Atualização da Flag RecebidoExpedicao [DB9:2.0] para TRUE");
-                }
-
-                int offset = 6 + (posicaoGuardarExp - 1) * 2;
-                System.out.println("Guardando Operacao em posicaoGuardarExp: " + posicaoGuardarExp);
-                if (posicaoGuardarExp > 0) {
-
-                    try {
-                        // Atualiza cor no CLP
-                        plcConnectorExp.writeInt(9, offset, opGuardadoExpedicao);
-
-                        // Cria mapa de dados com apenas uma posição
-                        Map<String, Integer> dadosMap = new HashMap<>();
-                        dadosMap.put("OP:" + posicaoGuardarExp, opGuardadoExpedicao);
-
-                        // === Chama serviço de integração ===
-                        boolean sucesso = apiIntegrationService.salvarExpedicao(dadosMap);
-
-                        if (sucesso) {
-                            System.out.println("Expedição salva com sucesso na API.");
-                        } else {
-                            System.out.println("Falha ao salvar expedição na API.");
-                            // aqui você poderia lançar uma exceção ou marcar para tentar novamente
-                        }
-
-                    } catch (Exception e) {
-                        System.out.println("ERRO: Na tentativa de adicionar na Expedição");
-                        e.printStackTrace();
-                    }
-                }
+            if (posicaoLivre <= 0) {
+                System.out.println("ERRO: não existe posição livre na expedição.");
+                return;
             }
 
-        }
-        // Se a flag removerExpedicao está TRUE E aux_expedicao está FALSE então a flag RecebidoExpedicao fica em TRUE
-        if ((removerExpedicao == true) & MonitorService.aux_expedicao == false) { // verifica se Expedição pede posição
-            // para remover
-            MonitorService.aux_expedicao = true;
-            //System.out.println("Estou Aqui em => (removerExpedicao == true) & aux_expedicao == false)");
+            MonitorService.posicaoExpedicaoSolicitada = posicaoLivre;
 
-            // Ler a variável PosicaoRemovidoExpedicao
-            // posicaoRemovidoExpedicao = ((dadosClp4[40] & 0xFF) << 8) | (dadosClp4[41] & 0xFF);
-            //if (readOnly == false) {
-            // System.out.println("Flag: RecebidoExpediçcao_TRUE");
-            if (MonitorService.readOnly == false) {
-                try {
-                    // Panel3.plcWrite = new PlcConnector(ipExpedicao, 9, 2, 1, 0, 1);
-                    plcConnectorExp.writeBit(9, 2, 0, Boolean.parseBoolean("TRUE")); // coloca RecebidoOPExpedicao em TRUE
+            try {
+                plc.writeInt(9, 4, posicaoLivre);
+                plc.writeBit(9, 2, 1, true);
 
-                } catch (Exception e) {
-                    System.out.println(
-                            "ERRO [Adicionar Expedição]: Atualização da Flag RecebidoExpedicao [DB9:2.0] para TRUE");
-                }
-
-                int offset = 6 + (posicaoRemovidoExpedicao - 1) * 2;
-
-                System.out.println("Removendo Operacao de posicaoREmovidoExpedicao: " + posicaoRemovidoExpedicao);
-
-                if (posicaoRemovidoExpedicao > 0 && !MonitorService.readOnly) {
-
-                    try {
-                        // Atualiza cor no CLP
-                        plcConnectorExp.writeInt(9, offset, 0);
-
-                        // Cria mapa de dados com apenas uma posição
-                        Map<String, Integer> dadosMap = new HashMap<>();
-                        dadosMap.put("OP:" + posicaoRemovidoExpedicao, 0);
-
-                        // === Chama serviço de integração ===
-                        boolean sucesso = apiIntegrationService.salvarExpedicao(dadosMap);
-
-                        if (sucesso) {
-                            System.out.println("Expedição salva com sucesso na API.");
-                        } else {
-                            System.out.println("Falha ao salvar expedição na API.");
-                            // aqui você poderia lançar uma exceção ou marcar para tentar novamente
-                        }
-
-                    } catch (Exception e) {
-                        System.out.println("ERRO: Na tentativa de remover da Expedição");
-                        e.printStackTrace();
-                    }
-                }
+                System.out.println("[EXPEDIÇÃO] Posição livre enviada ao CLP: " + posicaoLivre);
+            } catch (Exception e) {
+                System.out.println("ERRO: não conseguiu enviar posição livre para expedição.");
             }
-            // adicionaRemoveMagazineExpedicao(posicaoRemovidoExpedicao, 0);
-            // updatePlcExpedicao();
-            //}
+        }
+    }
+
+    /**
+     * Quando o CLP informa que adicionou uma OP na expedição:
+     * - confirma recebido;
+     * - grava OP na memória DB9.DBW6 + posição;
+     * - salva na tabela expedicao;
+     * - marca o pedido como concluído automaticamente.
+     */
+    private void tratarAdicionarExpedicao(PlcConnector plc) {
+        if (!adicionarExpedicao || MonitorService.aux_expedicao) {
+            return;
         }
 
-        if ((posicaoGuardadoExpedicao == posicaoGuardarExp) & (ocupadoExp == false) & (finishOPExp == true)) {
+        MonitorService.aux_expedicao = true;
 
-            if (MonitorService.readOnly == false) {
+        int posicao = posicaoGuardadoExpedicao > 0
+                ? posicaoGuardadoExpedicao
+                : posicaoGuardarExp;
 
-                System.out.println("AQUI: statusProducao: " + MonitorService.statusProducao);
-                System.out.println("AQUI: pedidoEmCurso:: " + MonitorService.pedidoEmCurso);
-                if (MonitorService.statusProducao == 0 & MonitorService.pedidoEmCurso == true) {
+        int numeroOp = opGuardadoExpedicao > 0
+                ? opGuardadoExpedicao
+                : numeroOPExp;
 
-                    System.out.println("--------------------------------------------------");
-                    System.out.println(" ");
-                    //pedidoEmCurso = false;
-                    MonitorService.statusProducao = 1;
-                }
+        if (posicao <= 0 || posicao > 12 || numeroOp <= 0) {
+            System.out.println("[EXPEDIÇÃO] Adicionar ignorado. Posição/OP inválida.");
+            return;
+        }
 
-                System.out.println("Operação OP:" + opGuardadoExpedicao + " Finalizada: ");
+        if (!MonitorService.readOnly) {
+            try {
+                plc.writeBit(9, 2, 0, true);
+
+                int offset = 6 + ((posicao - 1) * 2);
+                plc.writeInt(9, offset, numeroOp);
+
+                System.out.printf("[EXPEDIÇÃO] OP %d gravada no CLP na posição %d DB9.DBW%d%n",
+                        numeroOp, posicao, offset);
+
+            } catch (Exception e) {
+                System.out.println("ERRO: não conseguiu gravar OP na memória da expedição.");
+                e.printStackTrace();
+            }
+        }
+
+        salvarExpedicaoLocal(posicao, numeroOp);
+        finalizarPedidoAutomaticamente(numeroOp, posicao);
+    }
+
+    /**
+     * Quando o CLP informa remoção, limpa:
+     * - memória do CLP;
+     * - tabela expedicao.
+     */
+    private void tratarRemoverExpedicao(PlcConnector plc) {
+        if (!removerExpedicao || MonitorService.aux_expedicao) {
+            return;
+        }
+
+        MonitorService.aux_expedicao = true;
+
+        int posicao = posicaoRemovidoExpedicao;
+
+        if (posicao <= 0 || posicao > 12) {
+            System.out.println("[EXPEDIÇÃO] Remover ignorado. Posição inválida.");
+            return;
+        }
+
+        limparMemoriaExpedicao(plc, posicao);
+        limparExpedicaoLocal(posicao);
+    }
+
+    private void tratarFinalizacaoAutomatica() {
+        if (finishOPExp) {
+            MonitorService.statusProducao = 1;
+            MonitorService.pedidoEmCurso = false;
+            MonitorService.blockFinished = true;
+        }
+    }
+
+    /**
+     * Chamado pelo botão do front para limpar uma posição da expedição.
+     */
+    @Transactional
+    public void limparPosicaoExpedicao(Integer posicao) {
+        if (posicao == null || posicao < 1 || posicao > 12) {
+            throw new BusinessException("Posição de expedição inválida. Informe uma posição entre 1 e 12.");
+        }
+
+        PlcConnector plc = plcConnectionService.getConnection(ipClpExpedicao);
+
+        if (plc == null) {
+            throw new BusinessException("Não foi possível conectar ao CLP de expedição: " + ipClpExpedicao);
+        }
+
+        limparMemoriaExpedicao(plc, posicao);
+        limparExpedicaoLocal(posicao);
+
+        System.out.println("[EXPEDIÇÃO] Posição " + posicao + " removida da memória e do banco.");
+    }
+
+    private void limparMemoriaExpedicao(PlcConnector plc, Integer posicao) {
+        int offset = 6 + ((posicao - 1) * 2);
+
+        try {
+            plc.writeInt(9, offset, 0);
+
+            if (posicaoGuardarExp == posicao) {
+                plc.writeInt(9, 4, 0);
             }
 
-            // }
+            plc.writeBit(9, 2, 0, true);
+            Thread.sleep(200);
+            plc.writeBit(9, 2, 0, false);
+
+            System.out.printf("[EXPEDIÇÃO] Memória limpa: posição %d DB9.DBW%d = 0%n", posicao, offset);
+
+        } catch (Exception e) {
+            throw new BusinessException("Erro ao limpar memória da expedição no CLP: " + e.getMessage());
+        }
+    }
+
+    private void salvarExpedicaoLocal(Integer posicao, Integer numeroOp) {
+        if (posicao == null || posicao < 1 || posicao > 12) {
+            return;
         }
 
+        if (numeroOp == null || numeroOp <= 0) {
+            limparExpedicaoLocal(posicao);
+            return;
+        }
+
+        Expedicao expedicao = expedicaoRepository
+                .findByPosicaoExpedicao(posicao)
+                .orElseGet(Expedicao::new);
+
+        Pedido pedido = pedidoRepository
+                .findByNumeroPedido(numeroOp)
+                .orElse(null);
+
+        expedicao.setPosicaoExpedicao(posicao);
+        expedicao.setPedidoId(pedido != null ? pedido.getIdPedido() : Long.valueOf(numeroOp));
+        expedicao.setDataSaida(LocalDateTime.now());
+
+        expedicaoRepository.save(expedicao);
+    }
+
+    private void limparExpedicaoLocal(Integer posicao) {
+        expedicaoRepository
+                .findByPosicaoExpedicao(posicao)
+                .ifPresent(expedicaoRepository::delete);
+    }
+
+    private void finalizarPedidoAutomaticamente(Integer numeroOp, Integer posicao) {
+        pedidoRepository.findByNumeroPedido(numeroOp).ifPresent(pedido -> {
+            if (pedido.getStatus() == null || pedido.getStatus() < 3) {
+                pedido.setStatus(3);
+            }
+
+            pedido.setPosicaoExpedicao(posicao);
+
+            pedidoRepository.save(pedido);
+
+            System.out.printf("[PEDIDO] OP %d finalizada automaticamente na posição %d%n",
+                    numeroOp, posicao);
+        });
+
+        MonitorService.statusProducao = 1;
+        MonitorService.pedidoEmCurso = false;
+        MonitorService.blockFinished = true;
+    }
+
+    /**
+     * Chamado pelo front quando o usuário clica em concluir manualmente.
+     */
+    @Transactional
+    public void gravarPedidoFinalizadoNaMemoria(Pedido pedido) {
+        if (pedido == null) {
+            throw new BusinessException("Pedido não informado para gravação na expedição.");
+        }
+
+        if (pedido.getPosicaoExpedicao() == null
+                || pedido.getPosicaoExpedicao() < 1
+                || pedido.getPosicaoExpedicao() > 12) {
+            throw new BusinessException("Posição de expedição inválida. Informe uma posição entre 1 e 12.");
+        }
+
+        if (pedido.getNumeroPedido() == null) {
+            throw new BusinessException("Número da ordem de produção não informado.");
+        }
+
+        PlcConnector plc = plcConnectionService.getConnection(ipClpExpedicao);
+
+        if (plc == null) {
+            throw new BusinessException("Não foi possível conectar ao CLP de expedição: " + ipClpExpedicao);
+        }
+
+        int posicao = pedido.getPosicaoExpedicao();
+        int numeroOp = pedido.getNumeroPedido();
+        int offset = 6 + ((posicao - 1) * 2);
+
+        try {
+            plc.writeInt(9, offset, numeroOp);
+            plc.writeInt(9, 4, posicao);
+
+            plc.writeBit(9, 2, 1, true);
+            Thread.sleep(400);
+            plc.writeBit(9, 2, 1, false);
+
+            salvarExpedicaoLocal(posicao, numeroOp);
+            finalizarPedidoAutomaticamente(numeroOp, posicao);
+
+            System.out.printf("[EXPEDIÇÃO] OP %d gravada manualmente no CLP DB9.DBW%d%n",
+                    numeroOp, offset);
+
+        } catch (Exception e) {
+            throw new BusinessException("Erro ao gravar pedido finalizado no CLP de expedição: " + e.getMessage());
+        }
     }
 
     public int buscarPrimeiraPosicaoLivreExp() {
@@ -368,6 +415,7 @@ public class ExpedicaoClpService {
                 return i;
             }
         }
+
         return -1;
     }
 }
