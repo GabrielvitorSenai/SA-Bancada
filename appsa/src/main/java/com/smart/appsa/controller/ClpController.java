@@ -209,7 +209,11 @@ public class ClpController {
                 while (true) {
                     byte[] dados = switch (bancada.toLowerCase()) {
                         case "estoque" -> {
-                            // Adiciona dois bytes ao final
+                            // Ainda sem leitura (CLP recém-conectado ou offline): ignora o ciclo.
+                            if (dataClp1 == null) {
+                                yield null;
+                            }
+                            // Anexa 6 bytes de status ao final do frame
                             byte[] extendidoEst = new byte[dataClp1.length + 6];
                             System.arraycopy(dataClp1, 0, extendidoEst, 0, dataClp1.length);
                             extendidoEst[extendidoEst.length - 6] = MonitorService.statusEstoque;
