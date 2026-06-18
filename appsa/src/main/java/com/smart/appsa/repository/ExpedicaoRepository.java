@@ -18,4 +18,6 @@ public interface ExpedicaoRepository extends JpaRepository<Expedicao, Long> {
     List<Integer> findAllPosicoesOcupadas();
 
     Optional<Expedicao> findByPosicaoExpedicao(Integer posicaoExpedicao);
+
+    Optional<Expedicao> findByPedidoId(Long pedidoId);
 }

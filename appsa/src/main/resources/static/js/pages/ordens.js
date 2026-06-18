@@ -1,132 +1,147 @@
-/**
- * Tela Ordens de Produção.
- * Produzir: PUT /api/pedidos/{id}/produzir
- * Finalizar: PUT /api/pedidos/{id}/status
- */
 document.addEventListener('DOMContentLoaded', () => {
-    const grid = document.querySelector('#ordensGrid');
-    const btnReload = document.querySelector('#btnReloadOrdens');
-    let pedidos = [];
-    let filtro = 0;
-
-    btnReload.addEventListener('click', carregarOrdens);
-
-    document.querySelectorAll('.chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            filtro = Number(chip.dataset.status || 0);
-            renderizar();
-        });
-    });
-
     carregarOrdens();
     setInterval(carregarOrdens, 5000);
+});
 
-    async function carregarOrdens() {
-        try {
-            pedidos = await Smart40.API.get('/api/pedidos');
-            renderizar();
-        } catch (e) {
-            Smart40.UI.toast(e.message || 'Erro ao carregar ordens.', 'error');
-            grid.innerHTML = '<div class="empty">Erro ao carregar ordens.</div>';
-        }
+async function carregarOrdens() {
+    const container = document.querySelector('#ordensGrid');
+
+    if (!container) {
+        return;
     }
 
-    function renderizar() {
-        const lista = filtro ? pedidos.filter(p => Number(p.status || 1) === filtro) : pedidos;
+    try {
+        const pedidos = await api.get('/api/pedidos');
 
-        if (!lista.length) {
-            grid.innerHTML = '<div class="empty">Nenhuma ordem encontrada.</div>';
-            atualizarMetricas([]);
+        if (!pedidos || pedidos.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <strong>Nenhuma ordem encontrada</strong>
+                    <span>Crie um pedido para iniciar o fluxo de produção.</span>
+                </div>
+            `;
             return;
         }
 
-        lista.sort((a, b) => Number(b.idPedido || 0) - Number(a.idPedido || 0));
-        grid.innerHTML = lista.map(cardPedido).join('');
+        pedidos.sort((a, b) => Number(b.numeroPedido || 0) - Number(a.numeroPedido || 0));
 
-        grid.querySelectorAll('[data-action="produzir"]').forEach(btn => {
-            btn.addEventListener('click', () => enviarParaProducao(btn.dataset.id));
-        });
+        container.innerHTML = pedidos.map(pedido => {
+            const id = pedido.idPedido || pedido.id;
+            const status = Number(pedido.status || 1);
 
-        grid.querySelectorAll('[data-action="finalizar"]').forEach(btn => {
-            btn.addEventListener('click', () => finalizarPedido(btn.dataset.id));
-        });
+            return `
+                <article class="order-card status-${status}">
+                    <div class="order-card__top">
+                        <span class="badge">${traduzirStatusPedido(status)}</span>
+                        <strong>OP ${pedido.numeroPedido || '-'}</strong>
+                    </div>
 
-        atualizarMetricas(pedidos);
-    }
+                    <div class="order-card__body">
+                        <p><span>ID:</span> <strong>${id}</strong></p>
+                        <p><span>Tipo:</span> <strong>${pedido.tipoPedido || '-'} andar(es)</strong></p>
+                        <p><span>Tampa:</span> <strong>${nomeCor(pedido.corTampa)}</strong></p>
+                        <p><span>Expedição:</span> <strong>${pedido.posicaoExpedicao || '-'}</strong></p>
+                    </div>
 
-    function cardPedido(pedido) {
-        const id = pedido.idPedido || pedido.id;
-        const status = Number(pedido.status || 1);
-        const numero = pedido.numeroPedido || id;
-        const blocos = pedido.blocos || [];
+                    <div class="order-card__actions">
+                        ${status === 1 ? `
+                            <button class="btn btn-primary" onclick="enviarParaProducao(${id})">
+                                Enviar produção
+                            </button>
+                        ` : ''}
 
-        const action = status === 1
-            ? `<button class="btn btn-primary" data-action="produzir" data-id="${id}">Enviar para produção</button>`
-            : status === 2
-                ? `<button class="btn btn-warning" data-action="finalizar" data-id="${id}">Finalizar e expedir</button>`
-                : `<span class="status-badge status-3">Expedido</span>`;
+                        ${status !== 3 ? `
+                            <button class="btn btn-success" onclick="finalizarPedido(${id})">
+                                Finalizar / Expedir
+                            </button>
+                        ` : ''}
 
-        return `
-            <article class="order-card status-border-${status}">
-                <div class="order-card__top">
-                    <h3>Pedido #${numero}</h3>
-                    <span class="status-badge status-${status}">${Smart40.UI.statusPedido(status)}</span>
-                </div>
+                        ${status === 1 ? `
+                            <button class="btn btn-danger" onclick="removerPedido(${id})">
+                                Excluir
+                            </button>
+                        ` : ''}
+                    </div>
+                </article>
+            `;
+        }).join('');
 
-                <p class="order-line"><b>ID:</b> ${id}</p>
-                <p class="order-line"><b>Tipo:</b> ${pedido.tipoPedido} andar(es)</p>
-                <p class="order-line"><b>Tampa:</b> ${Smart40.UI.colorName(pedido.corTampa)}</p>
-                <p class="order-line"><b>Posição expedição:</b> ${pedido.posicaoExpedicao || '-'}</p>
-
-                <div class="mini-blocos">
-                    ${blocos.map(b => `<span class="mini-bloco cor-${b.corBloco || 0}">A${b.andar}: ${Smart40.UI.colorName(b.corBloco)}</span>`).join('')}
-                </div>
-
-                <div class="order-actions">${action}</div>
-            </article>
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = `
+            <div class="empty-state error">
+                <strong>Erro ao carregar ordens</strong>
+                <span>${error.message}</span>
+            </div>
         `;
     }
+}
 
-    async function enviarParaProducao(id) {
-        try {
-            await Smart40.API.put(`/api/pedidos/${id}/produzir`);
-            Smart40.UI.toast('Pedido enviado para produção.', 'success');
-            await carregarOrdens();
-        } catch (e) {
-            Smart40.UI.toast(e.message || 'Erro ao enviar para produção.', 'error');
+async function enviarParaProducao(idPedido) {
+    try {
+        if (!confirm('Enviar este pedido para produção?')) {
+            return;
         }
+
+        await api.put(`/api/pedidos/${idPedido}/produzir`);
+
+        toastSucesso('Pedido enviado para produção.');
+        await carregarOrdens();
+
+    } catch (error) {
+        console.error(error);
+        toastErro(error.message || 'Erro ao enviar para produção.');
     }
+}
 
-    async function finalizarPedido(id) {
-        try {
-            if (!Smart40.UI.confirm('Deseja finalizar este pedido e enviar para a expedição?')) {
-                return;
-            }
-
-            await Smart40.API.put(`/api/pedidos/${id}/status`);
-
-            Smart40.UI.toast('Pedido finalizado e enviado para a expedição.', 'success');
-            await carregarOrdens();
-            await carregarStatusRapido();
-        } catch (e) {
-            Smart40.UI.toast(e.message || 'Erro ao finalizar pedido.', 'error');
+async function finalizarPedido(idPedido) {
+    try {
+        if (!confirm('Finalizar este pedido e enviar para a expedição?')) {
+            return;
         }
-    }
 
-    async function carregarStatusRapido() {
-        try {
-            const status = await Smart40.API.get('/api/clp/status');
-            const online = Boolean(status.estoqueConectado || status.processoConectado || status.montagemConectado || status.expedicaoConectado);
-            Smart40.UI.setConnectionPill(online, status.pedidoFinalizado ? 'Pedido finalizado na bancada' : 'Status atualizado');
-        } catch {}
-    }
+        await api.put(`/api/pedidos/${idPedido}/status`);
 
-    function atualizarMetricas(lista) {
-        Smart40.UI.setText('#ordensPendentes', lista.filter(p => Number(p.status || 1) === 1).length);
-        Smart40.UI.setText('#ordensProducao', lista.filter(p => Number(p.status || 1) === 2).length);
-        Smart40.UI.setText('#ordensConcluidas', lista.filter(p => Number(p.status || 1) === 3).length);
-        Smart40.UI.setText('#ordensAtualizada', Smart40.UI.now());
+        toastSucesso('Pedido finalizado e enviado para expedição.');
+        await carregarOrdens();
+
+    } catch (error) {
+        console.error(error);
+        toastErro(error.message || 'Erro ao finalizar pedido.');
     }
-});
+}
+
+async function removerPedido(idPedido) {
+    try {
+        if (!confirm('Excluir este pedido pendente?')) {
+            return;
+        }
+
+        await api.delete(`/api/pedidos/${idPedido}`);
+
+        toastSucesso('Pedido excluído.');
+        await carregarOrdens();
+
+    } catch (error) {
+        console.error(error);
+        toastErro(error.message || 'Erro ao excluir pedido.');
+    }
+}
+
+function traduzirStatusPedido(status) {
+    switch (Number(status)) {
+        case 1: return 'Pendente';
+        case 2: return 'Em produção';
+        case 3: return 'Concluído';
+        default: return 'Indefinido';
+    }
+}
+
+function nomeCor(cor) {
+    switch (Number(cor)) {
+        case 1: return 'Preto';
+        case 2: return 'Vermelho';
+        case 3: return 'Azul';
+        default: return '-';
+    }
+}

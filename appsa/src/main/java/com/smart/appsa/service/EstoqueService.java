@@ -92,16 +92,7 @@ public class EstoqueService {
             estoque.setQuantidade(dto.getQuantidade());
         }
 
-        PosicaoEstoque posicao = estoque.getPosicaoEstoque();
-        if (posicao != null) {
-            boolean ocupado = estoque.getCor() != null
-                    && estoque.getCor() > 0
-                    && estoque.getQuantidade() != null
-                    && estoque.getQuantidade() > 0;
-
-            posicao.setDisponivel(!ocupado);
-            posicaoRepository.save(posicao);
-        }
+        atualizarDisponibilidadePosicao(estoque);
 
         return estoqueRepository.save(estoque);
     }
@@ -128,16 +119,27 @@ public class EstoqueService {
     }
 
     private void limparItemEstoque(Estoque estoque) {
-        PosicaoEstoque posicao = estoque.getPosicaoEstoque();
-
         estoque.setCor(0);
         estoque.setQuantidade(0);
         estoqueRepository.save(estoque);
 
-        if (posicao != null) {
-            posicao.setDisponivel(true);
-            posicaoRepository.save(posicao);
+        atualizarDisponibilidadePosicao(estoque);
+    }
+
+    private void atualizarDisponibilidadePosicao(Estoque estoque) {
+        PosicaoEstoque posicao = estoque.getPosicaoEstoque();
+
+        if (posicao == null) {
+            return;
         }
+
+        boolean ocupado = estoque.getCor() != null
+                && estoque.getCor() > 0
+                && estoque.getQuantidade() != null
+                && estoque.getQuantidade() > 0;
+
+        posicao.setDisponivel(!ocupado);
+        posicaoRepository.save(posicao);
     }
 
     public List<PosicaoEstoqueDTO> mapaEstoque() {

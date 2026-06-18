@@ -1,6 +1,5 @@
 package com.smart.appsa.service;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -11,12 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.smart.appsa.Entity.Bloco;
 import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.Entity.Expedicao;
 import com.smart.appsa.Entity.Pedido;
 import com.smart.appsa.Entity.PosicaoEstoque;
 import com.smart.appsa.Exception.BusinessException;
 import com.smart.appsa.repository.EstoqueRepository;
-import com.smart.appsa.repository.ExpedicaoRepository;
 import com.smart.appsa.repository.PedidoRepository;
 import com.smart.appsa.repository.PosicaoEstoqueRepository;
 
@@ -29,38 +26,104 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final EstoqueRepository estoqueRepository;
     private final PosicaoEstoqueRepository posicaoEstoqueRepository;
-    private final ExpedicaoRepository expedicaoRepository;
     private final SmartService smartService;
     private final ExpedicaoClpService expedicaoClpService;
 
     @Transactional
     public Pedido criarPedido(Pedido pedido) {
-        validarTipoPedido(pedido);
-        validarLaminas(pedido);
-        validarEstoque(pedido);
+        validarEstruturaPedido(pedido);
 
-        pedido.getBlocos().forEach(bloco -> {
-            bloco.setPedido(pedido);
+        gerarNumeroPedidoSeNecessario(pedido);
 
-            if (bloco.getLaminas() != null) {
-                bloco.getLaminas().forEach(lamina -> lamina.setBloco(bloco));
-            }
-        });
+        /*
+         * Reserva uma posição física para cada bloco.
+         * A escolha é feita pela primeira posição do mapa de estoque que contém a cor.
+         */
+        selecionarEstoqueParaBlocos(pedido);
+
+        vincularRelacionamentos(pedido);
 
         if (pedido.getStatus() == null) {
-            pedido.setStatus(1);
+            pedido.setStatus(1); // 1 = pendente
         }
 
         return pedidoRepository.save(pedido);
     }
 
-    private void validarTipoPedido(Pedido pedido) {
+    public List<Pedido> listarPedidos() {
+        return pedidoRepository.findAll();
+    }
+
+    public Pedido buscarPorId(Long id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
+    }
+
+    @Transactional
+    public void removerPedido(Long id) {
+        Pedido pedido = buscarPorId(id);
+
+        if (pedido.getStatus() != null && pedido.getStatus() >= 2) {
+            throw new BusinessException("Não é possível remover pedido em produção ou concluído.");
+        }
+
+        pedidoRepository.delete(pedido);
+    }
+
+    @Transactional
+    public Pedido enviarParaProducao(Long id) {
+        Pedido pedido = buscarPorId(id);
+
+        if (pedido.getStatus() != null && pedido.getStatus() >= 2) {
+            throw new BusinessException("Pedido já em produção ou concluído.");
+        }
+
+        smartService.enviarParaProducao(pedido);
+
+        pedido.setStatus(2); // 2 = em produção
+        return pedidoRepository.save(pedido);
+    }
+
+    /**
+     * Conclusão manual pelo front.
+     * O método grava a OP na expedição/CLP e marca o pedido como concluído.
+     */
+    @Transactional
+    public Pedido atualizarStatus(Long id) {
+        Pedido pedido = buscarPorId(id);
+
+        if (pedido.getStatus() != null && pedido.getStatus() == 3) {
+            throw new BusinessException("Pedido já concluído.");
+        }
+
+        expedicaoClpService.gravarPedidoFinalizadoNaMemoria(pedido);
+
+        pedido.setStatus(3);
+        return pedidoRepository.save(pedido);
+    }
+
+    private void gerarNumeroPedidoSeNecessario(Pedido pedido) {
+        if (pedido.getNumeroPedido() == null || pedido.getNumeroPedido() <= 0) {
+            Integer max = pedidoRepository.findMaxNumeroPedido();
+            pedido.setNumeroPedido((max == null ? 0 : max) + 1);
+        }
+
+        pedidoRepository.findByNumeroPedido(pedido.getNumeroPedido()).ifPresent(p -> {
+            throw new BusinessException("Já existe pedido com o número de OP: " + pedido.getNumeroPedido());
+        });
+    }
+
+    private void validarEstruturaPedido(Pedido pedido) {
         if (pedido == null) {
             throw new BusinessException("Pedido não informado.");
         }
 
-        if (pedido.getTipoPedido() == null) {
-            throw new BusinessException("Tipo do pedido não informado.");
+        if (pedido.getTipoPedido() == null || pedido.getTipoPedido() < 1 || pedido.getTipoPedido() > 3) {
+            throw new BusinessException("Tipo de pedido inválido. Use 1, 2 ou 3.");
+        }
+
+        if (pedido.getCorTampa() == null || pedido.getCorTampa() < 1) {
+            throw new BusinessException("Cor da tampa não informada.");
         }
 
         if (pedido.getBlocos() == null || pedido.getBlocos().isEmpty()) {
@@ -69,27 +132,17 @@ public class PedidoService {
 
         int quantidadeBlocos = pedido.getBlocos().size();
 
-        if (pedido.getTipoPedido() == 3 && quantidadeBlocos != 3) {
-            throw new BusinessException("Pedidos triplos exigem exatamente 3 blocos.");
+        if (pedido.getTipoPedido() != quantidadeBlocos) {
+            throw new BusinessException("Quantidade de blocos não confere com o tipo de pedido.");
         }
 
-        if (pedido.getTipoPedido() == 2 && quantidadeBlocos != 2) {
-            throw new BusinessException("Pedidos duplos exigem exatamente 2 blocos.");
-        }
-
-        if (pedido.getTipoPedido() == 1 && quantidadeBlocos != 1) {
-            throw new BusinessException("Pedidos simples exigem exatamente 1 bloco.");
-        }
-
-        if (pedido.getTipoPedido() < 1 || pedido.getTipoPedido() > 3) {
-            throw new BusinessException("Tipo de pedido inválido. Use 1, 2 ou 3.");
-        }
-    }
-
-    private void validarLaminas(Pedido pedido) {
         for (Bloco bloco : pedido.getBlocos()) {
+            if (bloco.getCorBloco() == null || bloco.getCorBloco() < 1 || bloco.getCorBloco() > 3) {
+                throw new BusinessException("Cor de bloco inválida. Use 1=preto, 2=vermelho ou 3=azul.");
+            }
+
             if (bloco.getLaminas() == null) {
-                throw new BusinessException("Cada bloco precisa possuir a lista de lâminas.");
+                throw new BusinessException("Lista de lâminas não informada.");
             }
 
             if (bloco.getLaminas().size() > 3) {
@@ -98,7 +151,12 @@ public class PedidoService {
         }
     }
 
-    private void validarEstoque(Pedido pedido) {
+    /**
+     * Regra:
+     * sempre pega a primeira posição física disponível daquela cor,
+     * respeitando a ordem do mapa de estoque.
+     */
+    private void selecionarEstoqueParaBlocos(Pedido pedido) {
         Set<Integer> posicoesUsadasNestePedido = new HashSet<>();
 
         List<Bloco> blocosOrdenados = pedido.getBlocos()
@@ -110,14 +168,10 @@ public class PedidoService {
                 .toList();
 
         for (Bloco bloco : blocosOrdenados) {
-            Integer corSolicitada = bloco.getCorBloco();
-
-            if (corSolicitada == null || corSolicitada < 1 || corSolicitada > 3) {
-                throw new BusinessException("Cor de bloco inválida. Use 1=preto, 2=vermelho ou 3=azul.");
-            }
+            Integer cor = bloco.getCorBloco();
 
             Estoque estoqueSelecionado = estoqueRepository
-                    .findByCorOrderByPosicaoEstoque_PosicaoAsc(corSolicitada)
+                    .findByCorOrderByPosicaoEstoque_PosicaoAsc(cor)
                     .stream()
                     .filter(e -> e.getPosicaoEstoque() != null)
                     .filter(e -> e.getPosicaoEstoque().getPosicao() != null)
@@ -125,7 +179,7 @@ public class PedidoService {
                     .filter(e -> !posicoesUsadasNestePedido.contains(e.getPosicaoEstoque().getPosicao()))
                     .findFirst()
                     .orElseThrow(() -> new BusinessException(
-                            "Não existe posição disponível no estoque para a cor: " + corSolicitada
+                            "Não existe posição disponível no estoque para a cor: " + cor
                     ));
 
             PosicaoEstoque posicao = estoqueSelecionado.getPosicaoEstoque();
@@ -133,6 +187,11 @@ public class PedidoService {
 
             posicoesUsadasNestePedido.add(posicaoFisica);
 
+            /*
+             * Depois que o bloco foi reservado para o pedido, a posição fica vazia
+             * para novos pedidos. O registro NÃO é deletado para preservar o vínculo
+             * Bloco -> Estoque -> PosicaoEstoque, usado pelo SmartService no envio ao CLP.
+             */
             estoqueSelecionado.setQuantidade(0);
             estoqueSelecionado.setCor(0);
             estoqueRepository.save(estoqueSelecionado);
@@ -142,55 +201,17 @@ public class PedidoService {
 
             bloco.setEstoque(estoqueSelecionado);
 
-            System.out.printf(
-                    "[ESTOQUE] Bloco cor %d vinculado à posição física %d%n",
-                    corSolicitada,
-                    posicaoFisica
-            );
+            System.out.printf("[ESTOQUE] Cor %d vinculada à posição física %d%n", cor, posicaoFisica);
         }
     }
 
-    public List<Pedido> listarPedidos() {
-        return pedidoRepository.findAll();
-    }
+    private void vincularRelacionamentos(Pedido pedido) {
+        pedido.getBlocos().forEach(bloco -> {
+            bloco.setPedido(pedido);
 
-    @Transactional
-    public Pedido enviarParaProducao(Long id) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
-
-        if (pedido.getStatus() != null && pedido.getStatus() >= 2) {
-            throw new BusinessException("Pedido já em produção ou concluído.");
-        }
-
-        smartService.enviarParaProducao(pedido);
-
-        pedido.setStatus(2);
-        return pedidoRepository.save(pedido);
-    }
-
-    @Transactional
-    public Pedido atualizarStatus(Long id) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Pedido não encontrado."));
-
-        if (pedido.getStatus() != null && pedido.getStatus() == 3) {
-            throw new BusinessException("Pedido já concluído.");
-        }
-
-        expedicaoClpService.gravarPedidoFinalizadoNaMemoria(pedido);
-
-        pedido.setStatus(3);
-        Pedido pedidoAtualizado = pedidoRepository.save(pedido);
-
-        Expedicao expedicao = Expedicao.builder()
-                .pedidoId(pedido.getIdPedido())
-                .dataSaida(LocalDateTime.now())
-                .posicaoExpedicao(pedido.getPosicaoExpedicao())
-                .build();
-
-        expedicaoRepository.save(expedicao);
-
-        return pedidoAtualizado;
+            if (bloco.getLaminas() != null) {
+                bloco.getLaminas().forEach(lamina -> lamina.setBloco(bloco));
+            }
+        });
     }
 }

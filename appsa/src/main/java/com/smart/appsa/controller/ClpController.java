@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -29,6 +29,7 @@ import com.smart.appsa.clpcomm.PlcConnectionService;
 import com.smart.appsa.clpcomm.PlcConnector;
 import com.smart.appsa.clpcomm.PlcReaderDB;
 import com.smart.appsa.clpcomm.PlcReaderMultDB;
+import com.smart.appsa.service.ClpSyncService;
 import com.smart.appsa.service.EstoqueClpService;
 import com.smart.appsa.service.ExpedicaoClpService;
 import com.smart.appsa.service.MonitorService;
@@ -45,6 +46,7 @@ public class ClpController {
 
     private final PlcConnectionService plcConnectionService;
     private final MonitorService monitorService;
+    private final ClpSyncService clpSyncService;
     private final EstoqueClpService estoqueService;
     private final ProcessoClpService processoService;
     private final MontagemClpService montagemService;
@@ -58,6 +60,23 @@ public class ClpController {
     private static byte[] dataClp2;
     private static byte[] dataClp3;
     private static byte[] dataClp4;
+
+    @PostMapping("/sync-estoque")
+    public ResponseEntity<Map<String, Object>> syncEstoque(@RequestBody(required = false) Map<String, String> body) {
+        String ip = body != null ? body.get("estoque") : null;
+        return ResponseEntity.ok(clpSyncService.sincronizarEstoque(ip));
+    }
+
+    @PostMapping("/sync-expedicao")
+    public ResponseEntity<Map<String, Object>> syncExpedicao(@RequestBody(required = false) Map<String, String> body) {
+        String ip = body != null ? body.get("expedicao") : null;
+        return ResponseEntity.ok(clpSyncService.sincronizarExpedicao(ip));
+    }
+
+    @PostMapping("/sync-all")
+    public ResponseEntity<Map<String, Object>> syncAll(@RequestBody(required = false) Map<String, String> ips) {
+        return ResponseEntity.ok(clpSyncService.sincronizarTudo(ips));
+    }
 
     @PostMapping("/start-readings")
     public ResponseEntity<Map<String, Object>> startReadings(@RequestBody Map<String, String> ips) {
@@ -100,7 +119,6 @@ public class ClpController {
                     item.put("mensagem", "Não foi possível conectar ao CLP.");
                     item.put("ip", ipNormalizado);
                     detalhes.put(nomeNormalizado, item);
-                    System.err.println("Erro ao obter conexão com o CLP: " + ipNormalizado);
                     return;
                 }
 
@@ -139,14 +157,9 @@ public class ClpController {
             }
         });
 
-        boolean peloMenosUmConectado = false;
-
-        for (Object valor : detalhes.values()) {
-            if (valor instanceof Map<?, ?> map && Boolean.TRUE.equals(map.get("conectado"))) {
-                peloMenosUmConectado = true;
-                break;
-            }
-        }
+        boolean peloMenosUmConectado = detalhes.values()
+                .stream()
+                .anyMatch(v -> v instanceof Map<?, ?> map && Boolean.TRUE.equals(map.get("conectado")));
 
         resposta.put("sucesso", peloMenosUmConectado);
         resposta.put("mensagem", peloMenosUmConectado
@@ -229,11 +242,6 @@ public class ClpController {
     }
 
     private void updateCache(String nome, byte[] dados) {
-        if (dados == null) {
-            readingsCache.put(nome, "");
-            return;
-        }
-
         readingsCache.put(nome, bytesParaHex(dados));
     }
 
@@ -261,11 +269,10 @@ public class ClpController {
         resposta.put("statusExpedicao", MonitorService.statusExpedicao);
         resposta.put("statusProducao", MonitorService.statusProducao);
 
-        resposta.put("estoqueConectado", dataClp1 != null);
-        resposta.put("processoConectado", dataClp2 != null);
-        resposta.put("montagemConectado", dataClp3 != null);
-        resposta.put("expedicaoConectado", dataClp4 != null);
-
+        resposta.put("estoqueConectado", dataClp1 != null || readingFutures.containsKey("estoque"));
+resposta.put("processoConectado", dataClp2 != null || readingFutures.containsKey("processo"));
+resposta.put("montagemConectado", dataClp3 != null || readingFutures.containsKey("montagem"));
+resposta.put("expedicaoConectado", dataClp4 != null || readingFutures.containsKey("expedicao"));
         resposta.put("leiturasAtivas", readingFutures.keySet());
         resposta.put("cache", readingsCache);
         resposta.put("timestamp", LocalDateTime.now().toString());
@@ -310,27 +317,19 @@ public class ClpController {
                     byte[] dados = montarFrameStream(bancada);
 
                     if (dados != null) {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("leitura")
-                                    .data(bytesParaHex(dados)));
-                        } catch (IOException | IllegalStateException ex) {
-                            emitter.complete();
-                            break;
-                        }
+                        emitter.send(SseEmitter.event()
+                                .name("leitura")
+                                .data(bytesParaHex(dados)));
                     } else {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("aguardando")
-                                    .data("Aguardando dados de " + bancada));
-                        } catch (IOException | IllegalStateException ex) {
-                            emitter.complete();
-                            break;
-                        }
+                        emitter.send(SseEmitter.event()
+                                .name("aguardando")
+                                .data("Aguardando dados de " + bancada));
                     }
 
                     TimeUnit.MILLISECONDS.sleep(400);
                 }
+            } catch (IOException | IllegalStateException ex) {
+                emitter.complete();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 emitter.completeWithError(e);
@@ -341,7 +340,7 @@ public class ClpController {
             }
         });
 
-        emitter.onCompletion(() -> sseExecutor.shutdownNow());
+        emitter.onCompletion(sseExecutor::shutdownNow);
         emitter.onTimeout(() -> {
             emitter.complete();
             sseExecutor.shutdownNow();

@@ -1,14 +1,4 @@
-/**
- * Smart40 API helper.
- * Mantém todas as chamadas centralizadas e trata erro JSON/texto.
- */
-window.Smart40 = window.Smart40 || {};
-
-Smart40.API = {
-    async json(url, options = {}) {
-        return request(url, options);
-    },
-
+const api = {
     async get(url) {
         return request(url, { method: 'GET' });
     },
@@ -16,14 +6,14 @@ Smart40.API = {
     async post(url, body) {
         return request(url, {
             method: 'POST',
-            body: body === undefined ? null : JSON.stringify(body)
+            body: body ? JSON.stringify(body) : null
         });
     },
 
     async put(url, body) {
         return request(url, {
             method: 'PUT',
-            body: body === undefined ? null : JSON.stringify(body)
+            body: body ? JSON.stringify(body) : null
         });
     },
 
@@ -33,16 +23,11 @@ Smart40.API = {
 };
 
 async function request(url, options = {}) {
-    const headers = new Headers(options.headers || {});
-
-    if (!headers.has('Content-Type') && options.body !== null) {
-        headers.set('Content-Type', 'application/json');
-    }
-
     const response = await fetch(url, {
-        credentials: 'same-origin',
-        ...options,
-        headers
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        ...options
     });
 
     if (response.status === 204) {

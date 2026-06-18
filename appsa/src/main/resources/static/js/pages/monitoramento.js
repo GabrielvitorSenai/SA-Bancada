@@ -1,101 +1,107 @@
-/**
- * Tela de monitoramento e leitura dos processos do CLP.
- * Usa SSE em /api/clp/smartstream/{bancada} e status em /api/clp/status.
- */
 document.addEventListener('DOMContentLoaded', () => {
-    const streams = {};
-    const bancadas = ['estoque', 'processo', 'montagem', 'expedicao'];
+    carregarStatusClp();
+    iniciarStreams();
 
-    document.querySelector('#btnStartMonitor').addEventListener('click', iniciarStreams);
-    document.querySelector('#btnStopMonitor').addEventListener('click', pararStreams);
-    document.querySelector('#btnResetStatus').addEventListener('click', resetarStatus);
+    setInterval(carregarStatusClp, 2000);
+});
 
-    carregarStatus();
-    setInterval(carregarStatus, 2000);
+async function carregarStatusClp() {
+    try {
+        const status = await api.get('/api/clp/status');
 
-    function iniciarStreams() {
-        bancadas.forEach(nome => {
-            if (streams[nome]) return;
+        preencher('#statusEstoque', traduzirStatus(status.statusEstoque));
+        preencher('#statusProcesso', traduzirStatus(status.statusProcesso));
+        preencher('#statusMontagem', traduzirStatus(status.statusMontagem));
+        preencher('#statusExpedicao', traduzirStatus(status.statusExpedicao));
+        preencher('#statusProducao', traduzirStatusProducao(status.statusProducao));
+        preencher('#pedidoEmCurso', status.pedidoEmCurso ? 'Sim' : 'Não');
+        preencher('#pedidoFinalizado', status.pedidoFinalizado ? 'Sim' : 'Não');
 
-            const source = new EventSource(`/api/clp/smartstream/${nome}`);
-            streams[nome] = source;
+        marcarConexao('#connEstoque', status.estoqueConectado);
+        marcarConexao('#connProcesso', status.processoConectado);
+        marcarConexao('#connMontagem', status.montagemConectado);
+        marcarConexao('#connExpedicao', status.expedicaoConectado);
 
-            source.addEventListener('leitura', event => {
-                const el = document.querySelector(`#hex-${nome}`);
-                if (el) el.textContent = event.data || '';
-            });
+    } catch (error) {
+        console.warn('Erro ao carregar status do CLP:', error);
+    }
+}
 
-            source.addEventListener('aguardando', event => {
-                const el = document.querySelector(`#hex-${nome}`);
-                if (el) el.textContent = event.data || 'Aguardando dados...';
-            });
+function iniciarStreams() {
+    ['estoque', 'processo', 'montagem', 'expedicao'].forEach(nome => {
+        const alvo = document.querySelector(`#stream-${nome}`);
 
-            source.onerror = () => {
-                const el = document.querySelector(`#hex-${nome}`);
-                if (el) el.textContent = 'Stream indisponível. Verifique a conexão.';
-                source.close();
-                delete streams[nome];
-            };
+        if (!alvo) {
+            return;
+        }
+
+        const source = new EventSource(`/api/clp/smartstream/${nome}`);
+
+        source.addEventListener('leitura', event => {
+            alvo.textContent = event.data;
         });
 
-        Smart40.UI.toast('Monitoramento iniciado.', 'success');
+        source.addEventListener('aguardando', event => {
+            alvo.textContent = event.data;
+        });
+
+        source.onerror = () => {
+            alvo.textContent = 'Stream desconectado. Tentando reconectar...';
+        };
+    });
+}
+
+async function resetarStatus() {
+    try {
+        await api.post('/api/clp/smart/reset-status');
+        toastSucesso('Status resetados.');
+        await carregarStatusClp();
+    } catch (error) {
+        toastErro(error.message || 'Erro ao resetar status.');
+    }
+}
+
+async function alterarReadOnly(value) {
+    try {
+        await api.post(`/api/clp/smart/readonly?value=${value}`);
+        toastSucesso(`Modo somente leitura: ${value ? 'ativado' : 'desativado'}.`);
+    } catch (error) {
+        toastErro(error.message || 'Erro ao alterar modo readOnly.');
+    }
+}
+
+function preencher(seletor, valor) {
+    const el = document.querySelector(seletor);
+    if (el) {
+        el.textContent = valor;
+    }
+}
+
+function marcarConexao(seletor, conectado) {
+    const el = document.querySelector(seletor);
+
+    if (!el) {
+        return;
     }
 
-    function pararStreams() {
-        Object.values(streams).forEach(s => s.close());
-        Object.keys(streams).forEach(k => delete streams[k]);
-        Smart40.UI.toast('Monitoramento pausado.', 'success');
+    el.textContent = conectado ? 'Conectado' : 'Sem leitura';
+    el.classList.toggle('is-online', !!conectado);
+    el.classList.toggle('is-offline', !conectado);
+}
+
+function traduzirStatus(status) {
+    switch (Number(status)) {
+        case 0: return 'Aguardando';
+        case 1: return 'Em operação';
+        case 2: return 'Finalizado';
+        default: return 'Indefinido';
     }
+}
 
-    async function resetarStatus() {
-        try {
-            await Smart40.API.post('/api/clp/smart/reset-status');
-            Smart40.UI.toast('Status zerados.', 'success');
-            await carregarStatus();
-        } catch (e) {
-            Smart40.UI.toast(e.message || 'Erro ao resetar status.', 'error');
-        }
+function traduzirStatusProducao(status) {
+    switch (Number(status)) {
+        case 0: return 'Em andamento';
+        case 1: return 'Finalizada';
+        default: return 'Aguardando';
     }
-
-    async function carregarStatus() {
-        try {
-            const status = await Smart40.API.get('/api/clp/status');
-
-            atualizarCard('estoque', status.estoqueConectado, status.statusEstoque);
-            atualizarCard('processo', status.processoConectado, status.statusProcesso);
-            atualizarCard('montagem', status.montagemConectado, status.statusMontagem);
-            atualizarCard('expedicao', status.expedicaoConectado, status.statusExpedicao);
-
-            Smart40.UI.setText('#monPedidoCurso', status.pedidoEmCurso ? 'Sim' : 'Não');
-            Smart40.UI.setText('#monPedidoFinalizado', status.pedidoFinalizado ? 'Sim' : 'Não');
-            Smart40.UI.setText('#monStatusProducao', Number(status.statusProducao) === 1 ? 'Finalizada' : 'Em andamento');
-
-            const online = Boolean(status.estoqueConectado || status.processoConectado || status.montagemConectado || status.expedicaoConectado);
-            Smart40.UI.setConnectionPill(online, online ? 'Monitoramento recebendo dados' : 'Sem leituras ativas');
-        } catch {}
-    }
-
-    function atualizarCard(nome, conectado, status) {
-        const card = document.querySelector(`[data-monitor="${nome}"]`);
-        if (!card) return;
-
-        card.classList.toggle('online', Boolean(conectado));
-        const statusEl = card.querySelector('[data-status]');
-        const connEl = card.querySelector('[data-conn]');
-
-        if (statusEl) statusEl.textContent = Smart40.UI.statusEstacao(status);
-        if (connEl) connEl.textContent = conectado ? 'Conectado' : 'Desconectado';
-
-        const img = card.querySelector('img');
-        if (img) {
-            const prefix = {
-                estoque: 'Smart40_Estoque',
-                processo: 'Smart40_Processo',
-                montagem: 'Smart40_Montagem',
-                expedicao: 'Smart40_Expedicao'
-            }[nome];
-            const suffix = conectado ? Number(status || 0) : 0;
-            img.src = `/assets/bancada/${prefix}_${suffix}.png`;
-        }
-    }
-});
+}
