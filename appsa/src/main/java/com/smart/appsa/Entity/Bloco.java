@@ -1,4 +1,4 @@
-package com.smart.appsa.Entity;
+package com.tecdes.appsabancada.entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class Bloco {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idBloco;
+    private Long id;
 
     private Integer andar;
 
@@ -35,5 +35,9 @@ public class Bloco {
     private Estoque estoque;
 
     @OneToMany(mappedBy = "bloco", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Lamina> laminas = new ArrayList<>();
+
+    public Long getIdBloco() { return id; }
+    public void setIdBloco(Long idBloco) { this.id = idBloco; }
 }

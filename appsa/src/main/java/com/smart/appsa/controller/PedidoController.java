@@ -1,4 +1,4 @@
-package com.smart.appsa.controller;
+package com.tecdes.appsabancada.controller;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.smart.appsa.Entity.Pedido;
-import com.smart.appsa.service.PedidoService;
+import com.tecdes.appsabancada.entity.Pedido;
+import com.tecdes.appsabancada.service.PedidoService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,5 +49,10 @@ public class PedidoController {
     @PutMapping("/{id}/status")
     public ResponseEntity<Pedido> atualizarStatus(@PathVariable Long id) {
         return ResponseEntity.ok(pedidoService.atualizarStatus(id));
+    }
+
+    @PutMapping("/{id}/finalizar")
+    public ResponseEntity<Pedido> finalizar(@PathVariable Long id) {
+        return ResponseEntity.ok(pedidoService.finalizarPedido(id));
     }
 }

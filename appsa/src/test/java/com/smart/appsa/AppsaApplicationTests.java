@@ -1,13 +1,13 @@
-package com.smart.appsa;
+package com.tecdes.appsabancada;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class AppsaApplicationTests {
+class AppsabancadaApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void mainClassIsLoadable() {
+        assertDoesNotThrow(() -> Class.forName("com.tecdes.appsabancada.AppsabancadaApplication"));
+    }
 }

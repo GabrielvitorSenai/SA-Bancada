@@ -1,4 +1,4 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
@@ -16,12 +16,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.smart.appsa.Entity.Bloco;
-import com.smart.appsa.Entity.Lamina;
-import com.smart.appsa.Entity.Pedido;
-import com.smart.appsa.Exception.BusinessException;
-import com.smart.appsa.clpcomm.PlcConnectionService;
-import com.smart.appsa.clpcomm.PlcConnector;
+import com.tecdes.appsabancada.entity.Bloco;
+import com.tecdes.appsabancada.entity.Lamina;
+import com.tecdes.appsabancada.entity.Pedido;
+import com.tecdes.appsabancada.exception.BusinessException;
+import com.tecdes.appsabancada.clpcomm.PlcConnectionService;
+import com.tecdes.appsabancada.clpcomm.PlcConnector;
 
 import lombok.RequiredArgsConstructor;
 

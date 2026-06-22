@@ -1,4 +1,4 @@
-package com.smart.appsa.Entity;
+package com.tecdes.appsabancada.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

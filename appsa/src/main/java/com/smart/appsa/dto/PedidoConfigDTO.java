@@ -1,4 +1,4 @@
-package com.smart.appsa.dto;
+package com.tecdes.appsabancada.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

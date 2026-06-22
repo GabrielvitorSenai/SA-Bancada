@@ -1,18 +1,8 @@
-package com.smart.appsa.Entity;
+package com.tecdes.appsabancada.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "lamina")
@@ -25,7 +15,7 @@ public class Lamina {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idLamina;
+    private Long id;
 
     private Integer posicao;
 
@@ -37,4 +27,7 @@ public class Lamina {
     @ManyToOne
     @JoinColumn(name = "bloco_id")
     private Bloco bloco;
+
+    public Long getIdLamina() { return id; }
+    public void setIdLamina(Long idLamina) { this.id = idLamina; }
 }

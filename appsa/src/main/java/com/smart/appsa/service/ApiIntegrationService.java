@@ -1,4 +1,4 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.smart.appsa.config.ApiUrlConfig;
+import com.tecdes.appsabancada.config.ApiUrlConfig;
 
 @Service
 public class ApiIntegrationService {

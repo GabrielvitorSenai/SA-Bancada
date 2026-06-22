@@ -1,4 +1,4 @@
-package com.smart.appsa.clpcomm;
+package com.tecdes.appsabancada.clpcomm;
 
 public class PlcConnector {
 

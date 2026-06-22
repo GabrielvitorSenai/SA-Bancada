@@ -1,4 +1,4 @@
-package com.smart.appsa.Exception;
+package com.tecdes.appsabancada.exception;
 
 public class BusinessException extends RuntimeException {
 

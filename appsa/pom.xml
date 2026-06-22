@@ -8,10 +8,10 @@
 		<version>4.0.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.smart</groupId>
-	<artifactId>appsa</artifactId>
+	<groupId>com.tecdes</groupId>
+	<artifactId>appsabancada</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>appsa</name>
+	<name>appsabancada</name>
 	<description/>
 	<url/>
 	<licenses>

@@ -1,4 +1,4 @@
-package com.smart.appsa.controller;
+package com.tecdes.appsabancada.controller;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -25,16 +25,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import com.smart.appsa.clpcomm.PlcConnectionService;
-import com.smart.appsa.clpcomm.PlcConnector;
-import com.smart.appsa.clpcomm.PlcReaderDB;
-import com.smart.appsa.clpcomm.PlcReaderMultDB;
-import com.smart.appsa.service.ClpSyncService;
-import com.smart.appsa.service.EstoqueClpService;
-import com.smart.appsa.service.ExpedicaoClpService;
-import com.smart.appsa.service.MonitorService;
-import com.smart.appsa.service.MontagemClpService;
-import com.smart.appsa.service.ProcessoClpService;
+import com.tecdes.appsabancada.clpcomm.PlcConnectionService;
+import com.tecdes.appsabancada.clpcomm.PlcConnector;
+import com.tecdes.appsabancada.clpcomm.PlcReaderDB;
+import com.tecdes.appsabancada.clpcomm.PlcReaderMultDB;
+import com.tecdes.appsabancada.service.ClpSyncService;
+import com.tecdes.appsabancada.service.EstoqueClpService;
+import com.tecdes.appsabancada.service.ExpedicaoClpService;
+import com.tecdes.appsabancada.service.MonitorService;
+import com.tecdes.appsabancada.service.MontagemClpService;
+import com.tecdes.appsabancada.service.ProcessoClpService;
 
 import lombok.RequiredArgsConstructor;
 
