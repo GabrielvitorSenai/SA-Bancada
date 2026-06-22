@@ -8,10 +8,10 @@
 		<version>4.0.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.smart</groupId>
-	<artifactId>appsa</artifactId>
+	<groupId>com.tecdes</groupId>
+	<artifactId>appsabancada</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>appsa</name>
+	<name>appsabancada</name>
 	<description/>
 	<url/>
 	<licenses>
@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<maven.compiler.release>17</maven.compiler.release>
+		<start-class>com.tecdes.appsabancada.AppsabancadaApplication</start-class>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -71,6 +73,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>com.tecdes.appsabancada.AppsabancadaApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
