@@ -1,119 +1,100 @@
-# appsabancada — Bancada Didática Smart 4.0
+# Etapa 3 — Frontend do Sistema SMART 4.0
 
-Sistema Java Spring Boot com Thymeleaf, CSS e JavaScript puro para operar a bancada didática Smart 4.0: pedidos, estoque, produção, expedição, monitoramento e comunicação com CLPs.
+HMI do operador (Thymeleaf + JS puro) que consome a API REST da Etapa 2.
+Layout com header no topo e **pedidos em cartões** (mostrando blocos e lâminas com
+as cores), Painel de Estoque (28 posições), Painel de Expedição (12 posições),
+configurador dinâmico com prévia visual do produto, validações e toast.
 
-## Tecnologias
+---
 
-- Java 17
-- Maven
-- Spring Boot
-- Spring Data JPA / Hibernate
-- Thymeleaf
-- MySQL
-- JavaScript `fetch`, HTML e CSS responsivo
+## 1. Veja funcionando agora (sem backend)
 
-## Banco de dados local
+Abra **`preview/preview.html`** no navegador. Usa dados simulados (mock) + os assets
+reais, então funciona offline — ideal para testar e apresentar na banca.
 
-Configuração padrão em `appsa/src/main/resources/application.properties`:
+---
 
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/dbSmart40?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=America/Sao_Paulo&allowPublicKeyRetrieval=true
-spring.datasource.username=root
-spring.datasource.password=senai
-spring.jpa.hibernate.ddl-auto=create
+## 2. Integração no projeto Spring Boot (`appsa`)
+
+### Backend — copie para `src/main/java/com/smart/appsa/`
+
+| Arquivo | Destino | Observação |
+|---|---|---|
+| `backend/dto/PosicaoEstoqueDTO.java` | `dto/` | **Novo** |
+| `backend/controller/ExpedicaoController.java` | `controller/` | **Novo** — `GET /api/expedicao` |
+| `backend/config/DataSeeder.java` | `config/` (crie a pasta) | **Novo, opcional** — popula 28 posições + demo |
+| `backend/service/EstoqueService.java` | `service/` | **Substitui** — adiciona `mapaEstoque()` |
+| `backend/controller/EstoqueController.java` | `controller/` | **Substitui** — adiciona `GET /api/estoque/posicoes` |
+| `backend/service/PedidoService.java` | `service/` | **Substitui** — adiciona `enviarParaProducao()` |
+| `backend/controller/PedidoController.java` | `controller/` | **Substitui** — adiciona `PUT /api/pedidos/{id}/produzir` |
+
+> Todas as substituições apenas **acrescentam** métodos; nada existente foi removido.
+
+### Frontend — copie para `src/main/resources/`
+
+| Arquivo | Destino |
+|---|---|
+| `frontend/templates/dashboard.html` | `templates/` |
+| `frontend/static/css/dashboard.css` | `static/css/` |
+| `frontend/static/js/dashboard.js` | `static/js/` |
+| `frontend/static/assets/` (pasta inteira) | `static/assets/` |
+
+### Exponha a rota do dashboard
+
+No seu `ProducaoViewController.java`, adicione:
+
+```java
+@GetMapping("/dashboard")
+public String dashboard(Model model) {
+    model.addAttribute("tituloPagina", "Bancada Smart 4.0 — SENAI Timbó");
+    return "dashboard";
+}
 ```
 
-Durante desenvolvimento o projeto usa `ddl-auto=create` para recriar o schema e evitar conflitos com tabelas antigas. Para preservar dados depois que o schema estiver correto, troque para:
+Acesse em `http://localhost:18089/dashboard`.
 
-```properties
-spring.jpa.hibernate.ddl-auto=update
+---
+
+## 3. Fluxo de status do pedido
+
+```
+   POST /api/pedidos                PUT /api/pedidos/{id}/produzir       PUT /api/pedidos/{id}/status
+[novo] ─────────────► (1) PENDENTE ───────────────────────► (2) EM PRODUÇÃO ──────────────────► (3) CONCLUÍDO
+                                     (botão "Enviar p/ produção")        (botão "Concluir e expedir" → gera Expedição)
 ```
 
-Se aparecer erro como `Unknown column 'id'`, `Unknown column 'p1_0.id'` ou `there can be only one auto column`, apague/recrie o banco antigo antes de subir a aplicação:
+| Verbo | Endpoint | Uso |
+|---|---|---|
+| GET | `/api/estoque/posicoes` | **Novo** — Mapa de Estoque (28) |
+| GET | `/api/expedicao` | **Novo** — Mapa de Expedição (12) |
+| GET | `/api/pedidos` | Cartões de pedidos |
+| POST | `/api/pedidos` | Configurador → salvar |
+| PUT | `/api/pedidos/{id}/produzir` | **Novo** — pendente → produção |
+| PUT | `/api/pedidos/{id}/status` | produção → concluído + expedição |
 
-```bash
-mysql -u root -psenai < database/resetar-banco-dbSmart40.sql
-```
+---
 
-O Hibernate criará as tabelas automaticamente ao iniciar.
+## 4. Requisitos do enunciado cobertos
 
-## Como rodar
+- ✅ Grid de 28 posições, cor por bloco ou cinza se vazio, com id da posição.
+- ✅ Painel de Expedição (12) com pedidos concluídos aguardando retirada.
+- ✅ Pedidos em **cartões**, com blocos e lâminas e **cores destacadas no texto**.
+- ✅ Filtro por status (Todos/Pendente/Produção/Concluído).
+- ✅ Botão "Enviar para produção" nos pendentes (e "Concluir e expedir" em produção).
+- ✅ Configurador adaptável a Simples/Duplo/Triplo + prévia visual do produto (assets).
+- ✅ Lâminas com cor (6), padrão (4) e posição (Esquerda/Frente/Direita).
+- ✅ Validação em tempo real: botão "Salvar" desabilitado sem ordem de produção.
+- ✅ Alerta de indisponibilidade de estoque por cor.
+- ✅ Toast: "Pedido cadastrado com sucesso e enviado para a fila de produção!"
 
-```bash
-cd appsa
-mvn clean package -DskipTests
-mvn spring-boot:run
-```
+---
 
-A aplicação roda em:
+## 5. Notas técnicas
 
-- http://localhost:8088/
-- http://localhost:8088/conexao
-- http://localhost:8088/estoque
-- http://localhost:8088/pedidos/novo
-- http://localhost:8088/ordens
-- http://localhost:8088/expedicao
-- http://localhost:8088/monitoramento
-
-## Endpoints principais
-
-### Pedidos
-
-- `GET /api/pedidos`
-- `GET /api/pedidos/{id}`
-- `POST /api/pedidos`
-- `DELETE /api/pedidos/{id}`
-- `PUT /api/pedidos/{id}/produzir`
-- `PUT /api/pedidos/{id}/status`
-- `PUT /api/pedidos/{id}/finalizar`
-
-### Estoque
-
-- `GET /api/estoque`
-- `GET /api/estoque/posicoes`
-- `POST /api/estoque`
-- `DELETE /api/estoque/{posicao}`
-- `PUT /api/estoque/{posicao}/limpar`
-
-### Expedição
-
-- `GET /api/expedicao`
-- `POST /api/expedicao`
-- `DELETE /api/expedicao/{posicao}`
-- `PUT /api/expedicao/{posicao}/limpar`
-
-### CLP
-
-- `POST /api/clp/start-readings`
-- `GET /api/clp/status`
-- `GET /api/clp/stream/{bancada}`
-- `POST /api/clp/sync-estoque`
-- `POST /api/clp/sync-expedicao`
-- `POST /api/clp/sync-all`
-
-IPs padrão dos CLPs:
-
-- Estoque: `10.74.241.10`
-- Processo: `10.74.241.20`
-- Montagem: `10.74.241.30`
-- Expedição: `10.74.241.40`
-
-## Fluxo mínimo de validação
-
-1. Abrir `/pedidos/novo`.
-2. Criar pedido com tampa, bloco e lâminas.
-3. Conferir pedido em `/ordens`.
-4. Enviar para produção.
-5. Atualizar/finalizar pedido.
-6. Conferir expedição.
-7. Conferir estoque.
-8. Verificar o console do navegador e da aplicação.
-
-## Comandos Git básicos
-
-```bash
-git status
-git add .
-git commit -m "mensagem"
-git push
-```
+- Cores das lâminas no texto seguem a escala do enunciado (1 vermelho … 6 branco);
+  cores da tampa/bloco seguem a outra escala (1 preto, 2 vermelho, 3 azul).
+- O JS tolera assets ausentes (`img.onerror`) e backend offline (fallback).
+- Padrões (`rpadrao*`) só têm variantes -1/-2; a posição mapeia para a variante
+  (Frente→2, demais→1). Ajuste `imgPadrao()` se não bater com a peça física.
+- A execução física na bancada (CLP, assets `bancada/*_on|off|pause`) continua como
+  módulo opcional fora deste escopo — o "Enviar para produção" aqui só muda o status.
