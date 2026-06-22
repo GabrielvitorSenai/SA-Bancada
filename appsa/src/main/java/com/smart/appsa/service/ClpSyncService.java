@@ -1,4 +1,4 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -7,16 +7,16 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.Entity.Expedicao;
-import com.smart.appsa.Entity.Pedido;
-import com.smart.appsa.Entity.PosicaoEstoque;
-import com.smart.appsa.Exception.BusinessException;
-import com.smart.appsa.clpcomm.PlcConnectionService;
-import com.smart.appsa.clpcomm.PlcConnector;
-import com.smart.appsa.repository.EstoqueRepository;
-import com.smart.appsa.repository.ExpedicaoRepository;
-import com.smart.appsa.repository.PedidoRepository;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.entity.Expedicao;
+import com.tecdes.appsabancada.entity.Pedido;
+import com.tecdes.appsabancada.entity.PosicaoEstoque;
+import com.tecdes.appsabancada.exception.BusinessException;
+import com.tecdes.appsabancada.clpcomm.PlcConnectionService;
+import com.tecdes.appsabancada.clpcomm.PlcConnector;
+import com.tecdes.appsabancada.repository.EstoqueRepository;
+import com.tecdes.appsabancada.repository.ExpedicaoRepository;
+import com.tecdes.appsabancada.repository.PedidoRepository;
 
 import lombok.RequiredArgsConstructor;
 

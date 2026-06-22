@@ -1,8 +1,8 @@
-package com.smart.appsa.repository;
+package com.tecdes.appsabancada.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.smart.appsa.Entity.Lamina;
+import com.tecdes.appsabancada.entity.Lamina;
 
 public interface LaminaRepository extends JpaRepository<Lamina, Long> {
 }

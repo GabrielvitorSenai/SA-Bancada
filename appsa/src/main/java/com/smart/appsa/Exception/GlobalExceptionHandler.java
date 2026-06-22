@@ -1,4 +1,4 @@
-package com.smart.appsa.Exception;
+package com.tecdes.appsabancada.exception;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -16,7 +16,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "timestamp", LocalDateTime.now().toString(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "erro", ex.getMessage()
+                "erro", true,
+                "mensagem", ex.getMessage()
         ));
     }
 
@@ -25,8 +26,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "timestamp", LocalDateTime.now().toString(),
                 "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "erro", "Erro interno ao processar a solicitação.",
-                "detalhe", ex.getMessage() == null ? "Sem detalhes" : ex.getMessage()
+                "erro", true,
+                "mensagem", "Erro interno ao processar a solicitação."
         ));
     }
 }

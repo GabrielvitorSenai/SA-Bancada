@@ -1,7 +1,7 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
-import com.smart.appsa.clpcomm.PlcConnectionService;
-import com.smart.appsa.clpcomm.PlcConnector;
+import com.tecdes.appsabancada.clpcomm.PlcConnectionService;
+import com.tecdes.appsabancada.clpcomm.PlcConnector;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

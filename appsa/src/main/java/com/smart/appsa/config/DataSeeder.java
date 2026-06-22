@@ -1,9 +1,9 @@
-package com.smart.appsa.config;
+package com.tecdes.appsabancada.config;
 
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.Entity.PosicaoEstoque;
-import com.smart.appsa.repository.EstoqueRepository;
-import com.smart.appsa.repository.PosicaoEstoqueRepository;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.entity.PosicaoEstoque;
+import com.tecdes.appsabancada.repository.EstoqueRepository;
+import com.tecdes.appsabancada.repository.PosicaoEstoqueRepository;
 
 import lombok.RequiredArgsConstructor;
 

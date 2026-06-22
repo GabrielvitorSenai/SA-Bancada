@@ -1,7 +1,7 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
-import com.smart.appsa.clpcomm.PlcConnectionService;
-import com.smart.appsa.clpcomm.PlcConnector;
+import com.tecdes.appsabancada.clpcomm.PlcConnectionService;
+import com.tecdes.appsabancada.clpcomm.PlcConnector;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,8 +11,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.repository.EstoqueRepository;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.repository.EstoqueRepository;
 
 @Service
 public class EstoqueClpService {

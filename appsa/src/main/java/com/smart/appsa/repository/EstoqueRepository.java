@@ -1,12 +1,12 @@
-package com.smart.appsa.repository;
+package com.tecdes.appsabancada.repository;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.Entity.PosicaoEstoque;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.entity.PosicaoEstoque;
 
 public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 

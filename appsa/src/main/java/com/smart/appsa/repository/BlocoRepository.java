@@ -1,11 +1,11 @@
-package com.smart.appsa.repository;
+package com.tecdes.appsabancada.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.smart.appsa.Entity.Bloco;
-import com.smart.appsa.Entity.Estoque;
+import com.tecdes.appsabancada.entity.Bloco;
+import com.tecdes.appsabancada.entity.Estoque;
 
 public interface BlocoRepository extends JpaRepository<Bloco, Long> {
 

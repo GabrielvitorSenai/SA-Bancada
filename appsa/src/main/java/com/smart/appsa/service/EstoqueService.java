@@ -1,4 +1,4 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,13 +9,13 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.Entity.PosicaoEstoque;
-import com.smart.appsa.Exception.BusinessException;
-import com.smart.appsa.dto.EstoqueRequestDTO;
-import com.smart.appsa.dto.PosicaoEstoqueDTO;
-import com.smart.appsa.repository.EstoqueRepository;
-import com.smart.appsa.repository.PosicaoEstoqueRepository;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.entity.PosicaoEstoque;
+import com.tecdes.appsabancada.exception.BusinessException;
+import com.tecdes.appsabancada.dto.EstoqueRequestDTO;
+import com.tecdes.appsabancada.dto.PosicaoEstoqueDTO;
+import com.tecdes.appsabancada.repository.EstoqueRepository;
+import com.tecdes.appsabancada.repository.PosicaoEstoqueRepository;
 
 import lombok.RequiredArgsConstructor;
 

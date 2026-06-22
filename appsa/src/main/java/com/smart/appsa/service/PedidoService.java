@@ -1,4 +1,4 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -8,14 +8,14 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smart.appsa.Entity.Bloco;
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.Entity.Pedido;
-import com.smart.appsa.Entity.PosicaoEstoque;
-import com.smart.appsa.Exception.BusinessException;
-import com.smart.appsa.repository.EstoqueRepository;
-import com.smart.appsa.repository.PedidoRepository;
-import com.smart.appsa.repository.PosicaoEstoqueRepository;
+import com.tecdes.appsabancada.entity.Bloco;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.entity.Pedido;
+import com.tecdes.appsabancada.entity.PosicaoEstoque;
+import com.tecdes.appsabancada.exception.BusinessException;
+import com.tecdes.appsabancada.repository.EstoqueRepository;
+import com.tecdes.appsabancada.repository.PedidoRepository;
+import com.tecdes.appsabancada.repository.PosicaoEstoqueRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -100,6 +100,11 @@ public class PedidoService {
 
         pedido.setStatus(3);
         return pedidoRepository.save(pedido);
+    }
+
+    @Transactional
+    public Pedido finalizarPedido(Long id) {
+        return atualizarStatus(id);
     }
 
     private void gerarNumeroPedidoSeNecessario(Pedido pedido) {

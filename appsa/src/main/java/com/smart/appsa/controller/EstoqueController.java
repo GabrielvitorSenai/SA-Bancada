@@ -1,4 +1,4 @@
-package com.smart.appsa.controller;
+package com.tecdes.appsabancada.controller;
 
 import java.util.List;
 
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smart.appsa.Entity.Estoque;
-import com.smart.appsa.dto.EstoqueRequestDTO;
-import com.smart.appsa.dto.PosicaoEstoqueDTO;
-import com.smart.appsa.service.EstoqueService;
+import com.tecdes.appsabancada.entity.Estoque;
+import com.tecdes.appsabancada.dto.EstoqueRequestDTO;
+import com.tecdes.appsabancada.dto.PosicaoEstoqueDTO;
+import com.tecdes.appsabancada.service.EstoqueService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,9 +56,15 @@ public class EstoqueController {
         return ResponseEntity.ok(estoqueService.atualizarEstoque(id, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removerEstoque(@PathVariable Long id) {
-        estoqueService.removerEstoque(id);
+    @DeleteMapping("/{posicao}")
+    public ResponseEntity<Void> removerPorPosicaoAlias(@PathVariable Integer posicao) {
+        estoqueService.removerPorPosicao(posicao);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{posicao}/limpar")
+    public ResponseEntity<Void> limparPorPosicaoAlias(@PathVariable Integer posicao) {
+        estoqueService.removerPorPosicao(posicao);
         return ResponseEntity.noContent().build();
     }
 

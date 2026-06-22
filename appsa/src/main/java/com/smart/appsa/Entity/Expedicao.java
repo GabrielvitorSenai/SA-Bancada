@@ -1,17 +1,9 @@
-package com.smart.appsa.Entity;
+package com.tecdes.appsabancada.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "expedicao")
@@ -26,9 +18,19 @@ public class Expedicao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer numeroPedido;
+
     private Long pedidoId;
 
     private LocalDateTime dataSaida;
 
+    @Column(unique = true)
     private Integer posicaoExpedicao;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "pedido_fk")
+    private Pedido pedido;
+
+    public Integer getOrderNumber() { return numeroPedido; }
+    public void setOrderNumber(Integer orderNumber) { this.numeroPedido = orderNumber; }
 }

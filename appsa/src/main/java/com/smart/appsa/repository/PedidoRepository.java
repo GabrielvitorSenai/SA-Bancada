@@ -1,11 +1,11 @@
-package com.smart.appsa.repository;
+package com.tecdes.appsabancada.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.smart.appsa.Entity.Pedido;
+import com.tecdes.appsabancada.entity.Pedido;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 

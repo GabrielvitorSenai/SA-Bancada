@@ -1,4 +1,4 @@
-package com.smart.appsa.repository;
+package com.tecdes.appsabancada.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.smart.appsa.Entity.Expedicao;
+import com.tecdes.appsabancada.entity.Expedicao;
 
 public interface ExpedicaoRepository extends JpaRepository<Expedicao, Long> {
 

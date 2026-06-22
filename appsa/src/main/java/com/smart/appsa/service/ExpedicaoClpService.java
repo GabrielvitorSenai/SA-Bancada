@@ -1,4 +1,4 @@
-package com.smart.appsa.service;
+package com.tecdes.appsabancada.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smart.appsa.Entity.Expedicao;
-import com.smart.appsa.Entity.Pedido;
-import com.smart.appsa.Exception.BusinessException;
-import com.smart.appsa.clpcomm.PlcConnectionService;
-import com.smart.appsa.clpcomm.PlcConnector;
-import com.smart.appsa.repository.ExpedicaoRepository;
-import com.smart.appsa.repository.PedidoRepository;
+import com.tecdes.appsabancada.entity.Expedicao;
+import com.tecdes.appsabancada.entity.Pedido;
+import com.tecdes.appsabancada.exception.BusinessException;
+import com.tecdes.appsabancada.clpcomm.PlcConnectionService;
+import com.tecdes.appsabancada.clpcomm.PlcConnector;
+import com.tecdes.appsabancada.repository.ExpedicaoRepository;
+import com.tecdes.appsabancada.repository.PedidoRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -243,11 +243,9 @@ public class ExpedicaoClpService {
 
         PlcConnector plc = plcConnectionService.getConnection(ipClpExpedicao);
 
-        if (plc == null) {
-            throw new BusinessException("Não foi possível conectar ao CLP de expedição: " + ipClpExpedicao);
+        if (plc != null) {
+            limparMemoriaExpedicao(plc, posicao);
         }
-
-        limparMemoriaExpedicao(plc, posicao);
         limparExpedicaoLocal(posicao);
     }
 
@@ -290,7 +288,9 @@ public class ExpedicaoClpService {
                 .orElse(null);
 
         expedicao.setPosicaoExpedicao(posicao);
+        expedicao.setPedido(pedido);
         expedicao.setPedidoId(pedido != null ? pedido.getIdPedido() : Long.valueOf(numeroOp));
+        expedicao.setNumeroPedido(numeroOp);
         expedicao.setDataSaida(LocalDateTime.now());
 
         expedicaoRepository.save(expedicao);
@@ -342,15 +342,16 @@ public class ExpedicaoClpService {
 
         PlcConnector plc = plcConnectionService.getConnection(ipClpExpedicao);
 
-        if (plc == null) {
-            throw new BusinessException("Não foi possível conectar ao CLP de expedição: " + ipClpExpedicao);
-        }
-
         int posicao = pedido.getPosicaoExpedicao();
         int numeroOp = pedido.getNumeroPedido();
         int offset = 6 + ((posicao - 1) * 2);
 
         try {
+            if (plc == null) {
+                salvarExpedicaoLocal(posicao, numeroOp);
+                finalizarPedidoAutomaticamente(numeroOp, posicao);
+                return;
+            }
             plc.writeInt(9, offset, numeroOp);
             plc.writeInt(9, 4, posicao);
 
@@ -363,6 +364,17 @@ public class ExpedicaoClpService {
         } catch (Exception e) {
             throw new BusinessException("Erro ao gravar pedido finalizado no CLP de expedição: " + e.getMessage());
         }
+    }
+
+    @Transactional
+    public Expedicao salvarExpedicao(Expedicao expedicao) {
+        if (expedicao == null || expedicao.getPosicaoExpedicao() == null || expedicao.getPosicaoExpedicao() < 1 || expedicao.getPosicaoExpedicao() > 12) {
+            throw new BusinessException("Posição de expedição inválida. Informe uma posição entre 1 e 12.");
+        }
+        Integer numero = expedicao.getNumeroPedido() != null ? expedicao.getNumeroPedido() : expedicao.getOrderNumber();
+        if (numero == null && expedicao.getPedidoId() != null) numero = expedicao.getPedidoId().intValue();
+        salvarExpedicaoLocal(expedicao.getPosicaoExpedicao(), numero == null ? 0 : numero);
+        return expedicaoRepository.findByPosicaoExpedicao(expedicao.getPosicaoExpedicao()).orElseThrow();
     }
 
     public int buscarPrimeiraPosicaoLivreExp() {
