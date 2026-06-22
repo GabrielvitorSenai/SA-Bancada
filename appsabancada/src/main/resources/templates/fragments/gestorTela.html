@@ -1,0 +1,432 @@
+<div th:fragment="gestorTela" id="gestorTela" class="tela">
+    <h1>Gestor do Estoque e Expedição</h1>
+
+    <style>
+        #gestorTela h1 {
+            text-align: center;
+        }
+
+        .container-gestor {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            margin-top: 20px;
+            min-height: 70vh;
+        }
+
+        .section-gestor {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40%;
+        }
+
+        .grid {
+            display: grid;
+        }
+
+        .update-estoque {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 5%;
+            text-align: center;
+            /* padding-left: 10%;
+            padding-right: 10%; */
+        }
+
+        .update-estoque button {
+            background-color: rgb(10, 102, 210);
+            color: #f0f0f0;
+            width: calc((60px * 6) + (12px * 5));
+            /* 6 colunas, 5 gaps */
+        }
+
+        .update-estoque button:hover {
+
+            background-color: rgb(72, 142, 240);
+
+        }
+
+        .update-expedicao {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 5%;
+            text-align: center;
+            /* padding-left: 10%;
+            padding-right: 10%; */
+        }
+
+        .update-expedicao button {
+            background-color: rgb(10, 102, 210);
+            color: #f0f0f0;
+            width: calc((120px * 4) + (16px * 3));
+            /* 4 colunas, 3 gaps */
+        }
+
+        .update-expedicao button:hover {
+
+            background-color: rgb(72, 142, 240);
+
+        }
+
+        .grid.estoque {
+            gap: 12px;
+        }
+
+        .grid.expedicao {
+            gap: 16px;
+            /* ou outro valor maior que 10px */
+        }
+
+        .estoque {
+            grid-template-columns: repeat(6, 60px);
+            grid-template-rows: repeat(5, 60px);
+        }
+
+        .expedicao {
+            grid-template-columns: repeat(4, 120px);
+            grid-template-rows: repeat(3, 80px);
+        }
+
+        .input-celula {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 14px;
+            padding: 5px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #999;
+            box-shadow: inset -2px -2px 4px #ffffff, inset 2px 2px 6px #c0c0c0;
+            background: linear-gradient(to bottom, #f0f0f0, #dcdcdc);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        /* Cores condicionais */
+        .cor-0 {
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            color: black;
+        }
+
+        .cor-1 {
+            background: linear-gradient(to bottom, #000000, #202020);
+            color: white;
+        }
+
+        .cor-2 {
+            background: linear-gradient(to bottom, #ff0000, #cc0000);
+            color: white;
+        }
+
+        .cor-3 {
+            background: linear-gradient(to bottom, #0000ff, #0000cc);
+            color: white;
+        }
+
+        .label {
+            background-color: #cdeecd;
+            border: 1px solid #999;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 6px;
+            box-shadow: inset -2px -2px 4px #ffffff, inset 2px 2px 6px #c0c0c0;
+            font-weight: bold;
+        }
+
+        .input-expedicao {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid #999;
+            box-shadow: inset -2px -2px 4px #ffffff, inset 2px 2px 6px #c0c0c0;
+            background: linear-gradient(to bottom, #cdeecd, #b0dcb0);
+            /* pointer-events: none; */
+            /* impede interação */
+            color: #000;
+        }
+
+        .invisivel {
+            visibility: hidden;
+        }
+    </style>
+
+    <div class="container-gestor">
+        <!-- Magazine de Estoque -->
+        <div class="section-gestor">
+            <h2>Magazine de Estoque</h2>
+            <div class="grid estoque">
+                <!-- 5x6 = 30 inputs, 2 ocultos -->
+                <!-- Gerado manualmente -->
+                <!-- Linha 1 -->
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <!-- Linha 2 -->
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <!-- Linha 3 -->
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <!-- Linha 4 -->
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <!-- Linha 5 -->
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="input-celula" maxlength="1">
+                <input type="text" class="invisivel">
+                <input type="text" class="invisivel">
+            </div>
+            <div class="update-estoque">
+                <button onclick="updateEstoque()">Atualizar Estoque</button>
+            </div>
+        </div>
+
+        <!-- Magazine de Expedição -->
+        <div class="section-gestor">
+            <h2>Magazine de Expedição</h2>
+            <div class="grid expedicao">
+
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+                <input type="text" class="input-expedicao">
+            </div>
+            <div class="update-expedicao">
+                <button onclick="updateExpedicao()">Atualizar Expedição</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript embutido -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            carregarValoresEstoque();
+            carregarValoresExpedicao();
+
+            // Atualiza dinamicamente ao digitar
+
+        });
+
+        // Função para apresentar dados no gestor do magazine de estoque
+        async function carregarValoresEstoque() {
+            console.log("Carregar valores Estoque");
+            const inputs = document.querySelectorAll(".input-celula");
+            try {
+                const response = await fetch("/blocos-estoque");
+                const data = await response.json();
+
+                inputs.forEach((input, index) => {
+                    const pos = "P" + (index + 1);
+                    if (data[pos] !== undefined) {
+                        input.value = data[pos];
+                        input.classList.remove("cor-0", "cor-1", "cor-2", "cor-3");
+                        input.classList.add("cor-" + data[pos]);
+                    }
+                });
+            } catch (erro) {
+                console.error("Erro ao carregar valores:", erro);
+            }
+            inputs.forEach(input => {
+                const applyColor = () => {
+                    const val = parseInt(input.value);
+                    input.classList.remove("cor-0", "cor-1", "cor-2", "cor-3");
+                    if (!isNaN(val) && val >= 0 && val <= 3) {
+                        input.classList.add("cor-" + val);
+                    }
+                };
+
+                applyColor(); // Aplicar estilo inicial
+                input.addEventListener("input", applyColor);
+            });
+        }
+
+        // Função para apresentar dados no gestor do magazine de expedição
+        async function carregarValoresExpedicao() {
+            console.log("Carregar valores Expedição");
+            try {
+                const response = await fetch("/pedidos-expedicao");
+                const data = await response.json();
+
+                const expedicaoInputs = document.querySelectorAll(".grid.expedicao .input-expedicao");
+
+                expedicaoInputs.forEach((input, index) => {
+                    const pos = "P" + (index + 1);
+                    if (data[pos] !== undefined) {
+                        input.value = "OP:" + data[pos];
+                    }
+                });
+            } catch (erro) {
+                console.error("Erro ao carregar valores:", erro);
+            }
+        }
+
+        // Função para atualizar a tabela Estoque na base de dados
+        async function updateEstoque() {
+            const estoqueInputs = document.querySelectorAll(".grid.estoque .input-celula:not(.invisivel)");
+            const payload = {};
+
+            estoqueInputs.forEach((input, index) => {
+                const posicao = index + 1;
+                const valor = parseInt(input.value);
+                if (!isNaN(valor)) {
+                    payload["P:" + posicao] = valor;
+                }
+            });
+
+            try {
+                const response = await fetch("/estoque/salvar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload) // apenas os dados, sem IP
+                });
+
+                if (!response.ok) {
+                    alert("Erro ao atualizar estoque.");
+                } else {
+                    alert("Estoque atualizado com sucesso.");
+                }
+            } catch (erro) {
+                console.error("Erro na requisição:", erro);
+            }
+        }
+
+        // Função para atualizar a tabela Expedição na base de dados
+        async function updateExpedicao() {
+            const expedicaoInputs = document.querySelectorAll(".grid.expedicao .input-expedicao");
+            const payload = {};
+
+            expedicaoInputs.forEach((input, index) => {
+                const posicao = index + 1;
+                const partes = input.value.split(":");
+                const valor = parseInt(partes[1]); // Pega só o número após os dois pontos
+                if (!isNaN(valor)) {
+                    payload["OP:" + posicao] = valor;
+                }
+            });
+
+            // Captura o IP do CLP do input com id="hostIpExpedicao"
+            const ipClp = document.getElementById("hostIpExpedicao").value.trim();
+
+            // Monta o objeto com dados e IP
+            const dadosComIp = {
+                ip: ipClp,
+                dados: payload
+            };
+
+            try {
+                const response = await fetch("/expedicao/salvar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Expedição atualizada com sucesso!");
+                } else {
+                    alert("Erro ao atualizar expedição.");
+                }
+            } catch (erro) {
+                console.error("Erro na requisição:", erro);
+            }
+        }
+
+        // Função para atualizar o bloco de dados (posições do estoque) na memória do clp Estoque
+        async function enviarParaClpEstoque() {
+            const ipEstoque = document.getElementById("hostIpEstoque")?.value;
+
+            if (!ipEstoque) {
+                alert("IP do CLP de Estoque não informado.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/clp/enviar-estoque", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ ipClp: ipEstoque })
+                });
+
+                if (response.ok) {
+                    console.log("Dados de estoque enviados com sucesso para o CLP!");
+                } else {
+                    const textoErro = await response.text();
+                    alert("Erro ao enviar dados do estoque para o CLP:\n" + textoErro);
+                }
+            } catch (erro) {
+                console.error("Erro na requisição:", erro);
+                alert("Erro na comunicação com o servidor.");
+            }
+        }
+
+        // Função para atualizar o bloco de dados (operações na expedição) na memória do clp Expedição
+        async function enviarParaClpExpedicao() {
+            const ipExpedicao = document.getElementById("hostIpExpedicao")?.value;
+
+            if (!ipExpedicao) {
+                alert("IP do CLP de Expedição não informado.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/clp/enviar-expedicao", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ ipClp: ipExpedicao })
+                });
+
+                if (response.ok) {
+                    console.log("Dados da expedição enviados com sucesso para o CLP!");
+                } else {
+                    const textoErro = await response.text();
+                    alert("Erro ao enviar dados da expedição para o CLP:\n" + textoErro);
+                }
+            } catch (erro) {
+                console.error("Erro na requisição:", erro);
+                alert("Erro na comunicação com o servidor.");
+            }
+        }
+
+    </script>
+</div>

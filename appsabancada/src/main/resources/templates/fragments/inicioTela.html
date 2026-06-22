@@ -1,0 +1,94 @@
+<!-- Fragmento inicial da linha didática -->
+<div th:fragment="inicioTela" id="inicioTela" class="tela">
+
+    <div class="relativeProducao">
+
+        <div id="divBancada" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada" src="assets/bancada/Smart40.png" alt="bancada">
+        </div>
+        <div id="divBancada" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada-est" src="assets/bancada/Smart40-Est_off.png"
+                alt="bancada">
+        </div>
+        <div id="divBancada" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada-pro" src="assets/bancada/Smart40-Pro_off.png"
+                alt="bancada">
+        </div>
+        <div id="divBancada" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada-mon" src="assets/bancada/Smart40-Mon_off.png"
+                alt="bancada">
+        </div>
+        <div id="divBancada" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada-exp" src="assets/bancada/Smart40-Exp_off.png"
+                alt="bancada">
+        </div>
+
+    </div>
+    <div class="divBancadaStatus" style="display: none;">
+        <input type="text" id="hostIpEstoque" class="transparente" name="estoque">
+        <input type="text" id="hostIpProcesso" class="transparente" name="processo">
+        <input type="text" id="hostIpMontagem" class="transparente" name="montagem">
+        <input type="text" id="hostIpExpedicao" class="transparente" name="estoque">
+    </div>
+    <div class="divBancadaLeituras" style="display: none;">
+
+        <input type="text" id="leituraEstoque" class="transparente" name="leituraEstoque">
+        <input type="text" id="leituraProcesso" class="transparente" name="leituraProcesso">
+        <input type="text" id="leituraMontagem" class="transparente" name="leituraMontagem">
+        <input type="text" id="leituraExpedicao" class="transparente" name="leituraExpedicao">
+
+    </div>
+
+    <div class="divTempo">
+        <div id="msgAlert" style="display: none; color: blue;"><strong>O endereço de rede da bancada não foi
+                informado.</strong></div>
+        <div class="connectGroup">
+            <label id="lblHostIp" for="hostIp">Endereço IP:</label>
+            <input type="text" id="hostIp" name="hostIp" placeholder="Ex: 10.74.241.10">
+            <button id="btnConectar" onclick="conectarBancada()">Conectar</button>
+
+        </div>
+         <label>
+            <input type="checkbox" id="readOnlyCheckbox"> Sistema no modo leitura
+        </label>
+
+    </div>
+
+    <script>
+
+        
+        const hostIpInput = document.getElementById('hostIp');
+        const btnConectar = document.getElementById('btnConectar');
+        let modoLeitura = false;
+
+        document.getElementById("hostIp").addEventListener("focus", function () {
+            document.getElementById("msgAlert").style.display = "none";
+        });
+        // Atualiza o modo de operação somente leitura
+        const checkbox = document.getElementById('readOnlyCheckbox');
+
+        checkbox.addEventListener('change', function () {
+            const isChecked = checkbox.checked;
+            modoLeitura = isChecked;
+            //alert(modoLeitura);
+
+            fetch('/smart/readonly?value=' + isChecked, {
+                method: 'POST'
+            })
+                .then(response => response.text())
+                .then(text => console.log(text))
+                .catch(error => console.error(error));
+        });
+
+        // Sincroniza o estado atual ao renderizar a tela
+        fetch('/smart/readonly')
+            .then(res => res.json())
+            .then(state => {
+                checkbox.checked = state;
+                modoLeitura = state;
+            });
+
+
+    </script>
+    <!-- </div> -->
+</div>

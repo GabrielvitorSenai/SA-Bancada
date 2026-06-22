@@ -1,0 +1,497 @@
+<!-- Fragmento de telemetria e status -->
+<div th:fragment="monitorTela" id="monitorTela" class="tela">
+
+
+    <style>
+        /* .monitoramento button {
+            margin-top: 10px;
+        } */
+
+        .monitoramento {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0px;
+            /* padding: 0 10px; */
+            /* opcional para espaçamento interno */
+        }
+
+        #titulo-monitor {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .clp-container {
+            margin-bottom: 10px;
+        }
+
+        .grid-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .coluna {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 8px;
+        }
+
+        .coluna h4 {
+            margin: 5px;
+        }
+
+        .variavel {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0px;
+        }
+
+        .variavel label {
+            display: inline-block;
+            font-size: 11px;
+            width: 200px;
+            /* Aumenta a largura dos labels */
+            font-weight: bold;
+        }
+
+        .variavel input {
+            width: 100px;
+            /* Reduz a largura dos inputs */
+            padding: 2px 2px;
+            background-color: #e0dfdf;
+            border: none;
+            font-size: 10px;
+            text-align: center;
+            border-radius: 8px;
+            height: 16px;
+            margin-left: 5px;
+            box-sizing: border-box;
+        }
+
+        .variavel2 label {
+            display: inline-block;
+            font-size: 11px;
+            width: 200px;
+            /* Aumenta a largura dos labels */
+            font-weight: bold;
+        }
+
+        .variavel2 input {
+            width: 100px;
+            /* Reduz a largura dos inputs */
+            padding: 2px 2px;
+            border: none;
+            font-size: 10px;
+            text-align: center;
+            border-radius: 8px;
+            height: 16px;
+            margin-left: 5px;
+            box-sizing: border-box;
+        }
+
+        .variavel3 {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0px;
+        }
+
+        .variavel3 input {
+            width: 220px;
+            /* Reduz a largura dos inputs */
+            padding: 2px 2px;
+            border: 1px solid #333;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px;
+            height: 20px;
+            margin-left: 5px;
+            box-sizing: border-box;
+        }
+
+        .tabela-wrapper {
+            width: 90%;
+            border: 1px solid #999;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px auto;
+            /* centraliza horizontalmente */
+        }
+
+        .pedido-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .pedido-tabela th,
+        .pedido-tabela td {
+            border: 1px solid #ccc;
+            padding: 4px 6px;
+            text-align: center;
+        }
+
+        .pedido-tabela th {
+            background-color: #f0f0f0;
+        }
+
+        .pedido-tabela input {
+            width: 80px;
+            font-size: 11px;
+        }
+
+        .tabela-input {
+            width: 100%;
+            background-color: #e0dfdf;
+            border: none;
+            font-size: 10px;
+            text-align: center;
+            border-radius: 8px;
+            height: 16px;
+            box-sizing: border-box;
+            padding: 2px;
+        }
+
+        /* Cores para os blocos */
+
+
+        .cor-bloco-0 {
+            background-color: #ccc;
+            color: black;
+        }
+
+        .cor-bloco-1 {
+            background-color: black;
+            color: white;
+        }
+
+        .cor-bloco-2 {
+            background-color: red;
+            color: white;
+        }
+
+        .cor-bloco-3 {
+            background-color: blue;
+            color: white;
+        }
+
+        /* Cores para as lâminas */
+        .cor-lamina-0 {
+            background-color: #ccc;
+            color: black;
+        }
+
+        /* cinza */
+        .cor-lamina-1 {
+            background-color: red;
+            color: white;
+        }
+
+        .cor-lamina-2 {
+            background-color: blue;
+            color: white;
+        }
+
+        .cor-lamina-3 {
+            background-color: yellow;
+            color: black;
+        }
+
+        .cor-lamina-4 {
+            background-color: green;
+            color: white;
+
+        }
+
+        .cor-lamina-5 {
+            background-color: black;
+            color: white;
+        }
+
+        .cor-lamina-6 {
+            background-color: white;
+            border: 1px solid #ccc;
+            color: black;
+        }
+    </style>
+
+
+    <div class="monitoramento">
+        <h3 id="titulo-monitor">Variáveis das Tags NodeToPlc e PlcToNode</h3>
+        <button onclick="executarPedido()">Executar Pedido</button>
+    </div>
+
+    <div id="clp-dados" class="clp-container" style="display: none;">
+        <div><strong>CLP1:</strong> <span id="clp1-dados">Carregando...</span></div>
+        <div><strong>CLP2:</strong> <span id="clp2-dados">Carregando...</span></div>
+        <div><strong>CLP3:</strong> <span id="clp3-dados">Carregando...</span></div>
+        <div><strong>CLP4:</strong> <span id="clp4-dados">Carregando...</span></div>
+    </div>
+
+    <div class="grid-container">
+        <!-- Div 1 -->
+        <div class="coluna">
+            <div class="variavel3">
+                <h4>Estoque</h4><input type="text" id="var1-statusEstoque" name="var1-statusEstoque">
+            </div>
+            <div class="variavel"><label>RecebidoOP:</label><input type="text" name="var1-1"></div>
+            <div class="variavel"><label>Numero_Pedido:</label><input type="text" name="var1-2"></div>
+            <div class="variavel"><label>Andares:</label><input type="text" name="var1-3"></div>
+            <div class="variavel"><label>Posicao_Expedicao:</label><input type="text" name="var1-4"></div>
+            <div class="variavel"><label>IniciarPedido:</label><input type="text" name="var1-5"></div>
+
+            <div class="variavel"><label>RecebidoEstoque:</label><input type="text" name="var1-6"></div>
+            <div class="variavel"><label>IniciarGuardar:</label><input type="text" name="var1-7"></div>
+            <div class="variavel"><label>PosicaoGuardar:</label><input type="text" name="var1-8"></div>
+
+            <div class="variavel"><label>NumeroOP:</label><input type="text" name="var1-9"></div>
+            <div class="variavel"><label>StartOP:</label><input type="text" name="var1-10"></div>
+            <div class="variavel"><label>CancelOP:</label><input type="text" name="var1-11"></div>
+            <div class="variavel"><label>FinishOP:</label><input type="text" name="var1-12"></div>
+            <div class="variavel"><label>OcupadoEst:</label><input type="text" name="var1-13"></div>
+            <div class="variavel"><label>AguardandoEst:</label><input type="text" name="var1-20"></div>
+            <div class="variavel"><label>ManualEst:</label><input type="text" name="var1-21"></div>
+            <div class="variavel"><label>EmergenciaEst:</label><input type="text" name="var1-22"></div>
+
+            <div class="variavel"><label>PedirPosicaoEst:</label><input type="text" name="var1-14"></div>
+            <div class="variavel"><label>PosicaoEstoque:</label><input type="text" name="var1-15"></div>
+            <div class="variavel"><label>AdicionarEstoque:</label><input type="text" name="var1-16"></div>
+            <div class="variavel"><label>RemoverEstoque:</label><input type="text" name="var1-17"></div>
+            <div class="variavel"><label>RetornoEstoqueCheio:</label><input type="text" name="var1-18"></div>
+            <div class="variavel"><label>CorGuardarEstoque:</label><input type="text" name="var1-19"></div>
+
+        </div>
+
+        <!-- Div 2 -->
+        <div class="coluna">
+            <h4>Dados do Pedido</h4>
+
+            <!-- Primeiro Andar -->
+            <div class="variavel2"><label>Cor Bloco Andar 1:</label><input class="cor-input-bloco" type="text"
+                    name="corBloco1"></div>
+            <div class="variavel"><label>Posição do Bloco 1:</label><input type="text" name="posicaoBloco1"></div>
+
+            <div class="tabela-wrapper">
+                <table class="pedido-tabela">
+                    <thead>
+                        <tr>
+                            <th>Lâmina</th>
+                            <th>Cor</th>
+                            <th>Padrão</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>L1</td>
+                            <td><input type="text" name="andar1-cor1" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar1-padrao1" class="tabela-input"></td>
+
+                        </tr>
+                        <tr>
+                            <td>L2</td>
+                            <td><input type="text" name="andar1-cor2" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar1-padrao2" class="tabela-input"></td>
+                        </tr>
+                        <tr>
+                            <td>L3</td>
+                            <td><input type="text" name="andar1-cor3" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar1-padrao3" class="tabela-input"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="variavel">
+                <label>Processamento Andar 1:</label>
+                <input type="text" name="procAndar1">
+            </div>
+            <hr>
+
+            <!-- Segundo Andar -->
+            <div class="variavel2"><label>Cor Bloco Andar 2:</label><input class="cor-input-bloco" type="text"
+                    name="corBloco2"></div>
+            <div class="variavel"><label>Posição do Bloco 2:</label><input type="text" name="posicaoBloco2"></div>
+
+            <div class="tabela-wrapper">
+                <table class="pedido-tabela">
+                    <thead>
+                        <tr>
+                            <th>Lâmina</th>
+                            <th>Cor</th>
+                            <th>Padrão</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>L1</td>
+                            <td><input type="text" name="andar2-cor1" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar2-padrao1" class="tabela-input"></td>
+                        </tr>
+                        <tr>
+                            <td>L2</td>
+                            <td><input type="text" name="andar2-cor2" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar2-padrao2" class="tabela-input"></td>
+                        </tr>
+                        <tr>
+                            <td>L3</td>
+                            <td><input type="text" name="andar2-cor3" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar2-padrao3" class="tabela-input"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="variavel">
+                <label>Processamento Andar 2:</label>
+                <input type="text" name="procAndar2">
+            </div>
+            <hr>
+
+            <!-- Terceiro Andar -->
+            <div class="variavel2"><label>Cor Bloco Andar 3:</label><input class="cor-input-bloco" type="text"
+                    name="corBloco3"></div>
+            <div class="variavel"><label>Posição do Bloco 3:</label><input type="text" name="posicaoBloco3"></div>
+
+            <div class="tabela-wrapper">
+                <table class="pedido-tabela">
+                    <thead>
+                        <tr>
+                            <th>Lâmina</th>
+                            <th>Cor</th>
+                            <th>Padrão</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>L1</td>
+                            <td><input type="text" name="andar3-cor1" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar3-padrao1" class="tabela-input"></td>
+                        </tr>
+                        <tr>
+                            <td>L2</td>
+                            <td><input type="text" name="andar3-cor2" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar3-padrao2" class="tabela-input"></td>
+                        </tr>
+                        <tr>
+                            <td>L3</td>
+                            <td><input type="text" name="andar3-cor3" class="tabela-input cor-lamina-input"></td>
+                            <td><input type="text" name="andar3-padrao3" class="tabela-input"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="variavel">
+                <label>Processamento Andar 3:</label>
+                <input type="text" name="procAndar3">
+            </div>
+        </div>
+
+
+
+        <!-- Div 3 -->
+        <div class="coluna">
+
+            <div class="variavel3">
+                <h4>Processo</h4><input type="text" id="var2-statusProcesso" name="var2-statusProcesso">
+            </div>
+            <div class="variavel"><label>RecebidoOPPro:</label><input type="text" name="var2-1"></div>
+            <div class="variavel"><label>NumeroOPPro:</label><input type="text" name="var2-2"></div>
+            <div class="variavel"><label>StartOPPro:</label><input type="text" name="var2-3"></div>
+            <div class="variavel"><label>CancelOPPro:</label><input type="text" name="var2-4"></div>
+            <div class="variavel"><label>FinishOPPro:</label><input type="text" name="var2-5"></div>
+            <div class="variavel"><label>OcupadoPro:</label><input type="text" name="var2-6"></div>
+            <div class="variavel"><label>AguardandoPro:</label><input type="text" name="var2-7"></div>
+            <div class="variavel"><label>ManualPro:</label><input type="text" name="var2-8"></div>
+            <div class="variavel"><label>EmergenciaPro:</label><input type="text" name="var2-9"></div><br> <br>
+
+
+            <div class="variavel3">
+                <h4>Montagem</h4><input type="text" id="var3-statusMontagem" name="var3-statusMontagem">
+            </div>
+            <div class="variavel"><label>RecebidoOPMon:</label><input type="text" name="var3-1"></div>
+            <div class="variavel"><label>NumeroOPMon:</label><input type="text" name="var3-2"></div>
+            <div class="variavel"><label>StartOPMon:</label><input type="text" name="var3-3"></div>
+            <div class="variavel"><label>CancelOPMon:</label><input type="text" name="var3-4"></div>
+            <div class="variavel"><label>FinishOPMon:</label><input type="text" name="var3-5"></div>
+            <div class="variavel"><label>OcupadoMon:</label><input type="text" name="var3-6"></div>
+            <div class="variavel"><label>AguardandoMon:</label><input type="text" name="var3-7"></div>
+            <div class="variavel"><label>ManualMon:</label><input type="text" name="var3-8"></div>
+            <div class="variavel"><label>EmergenciaMon:</label><input type="text" name="var3-9"></div>
+
+        </div>
+
+        <!-- Div 4 -->
+        <div class="coluna">
+            <div class="variavel3">
+                <h4>Expedição</h4><input type="text" id="var4-statusExpedicao" name="var4-statusExpedicao">
+            </div>
+            <div class="variavel"><label>RecebidoOPExp:</label><input type="text" name="var4-1"></div>
+            <div class="variavel"><label>RecebidoExpedicao:</label><input type="text" name="var4-2"></div>
+            <div class="variavel"><label>IniciarGuardar:</label><input type="text" name="var4-3"></div>
+            <div class="variavel"><label>PosicaoGuardarExpedicao:</label><input type="text" name="var4-4"></div>
+            <div class="variavel"><label>NumeroOPExp:</label><input type="text" name="var4-5"></div>
+            <div class="variavel"><label>StartOPExp:</label><input type="text" name="var4-6"></div>
+            <div class="variavel"><label>CancelOPExp:</label><input type="text" name="var4-7"></div>
+            <div class="variavel"><label>FinishOPExp:</label><input type="text" name="var4-8"></div>
+            <div class="variavel"><label>OcupadoExp:</label><input type="text" name="var4-9"></div>
+            <div class="variavel"><label>AguardandoExp:</label><input type="text" name="var4-16"></div>
+            <div class="variavel"><label>ManualExp:</label><input type="text" name="var4-17"></div>
+            <div class="variavel"><label>EmergenciaExp:</label><input type="text" name="var4-18"></div>
+            <div class="variavel"><label>PedirPosicao:</label><input type="text" name="var4-10"></div>
+            <div class="variavel"><label>PosicaoGuardadoExpedicao:</label><input type="text" name="var4-11"></div>
+            <div class="variavel"><label>PosicaoRemovidoExpedicao:</label><input type="text" name="var4-12"></div>
+            <div class="variavel"><label>AdicionarExpedicao:</label><input type="text" name="var4-13"></div>
+            <div class="variavel"><label>RemoverExpedicao:</label><input type="text" name="var4-14"></div>
+            <div class="variavel"><label>OPGuardadoExpedicao:</label><input type="text" name="var4-15"></div>
+        </div>
+    </div>
+    <!-- <div class="monitoramento">
+        <button onclick="executarPedido()">Executar Pedido</button>
+    </div> -->
+    <script>
+        function aplicarCoresInputs() {
+            const coresBloco = ['cor-bloco-0', 'cor-bloco-1', 'cor-bloco-2', 'cor-bloco-3'];
+            const coresLamina = [
+                'cor-lamina-0', 'cor-lamina-1', 'cor-lamina-2',
+                'cor-lamina-3', 'cor-lamina-4', 'cor-lamina-5', 'cor-lamina-6'
+            ];
+
+            // === Cor dos blocos ===
+            document.querySelectorAll('.cor-input-bloco').forEach(input => {
+                const valor = parseInt(input.value);
+
+                // Remove apenas as classes de cor, mantendo os estilos existentes como "tabela-input"
+
+                if (!input.classList.contains(`cor-bloco-${valor}`)) {
+                    input.classList.remove(...coresBloco);
+
+                    if (valor >= 0 && valor <= 3) {
+                        input.classList.add(`cor-bloco-${valor}`);
+                    }
+                }
+            });
+
+            // === Cor das lâminas ===
+            document.querySelectorAll('.cor-lamina-input').forEach(input => {
+                const valor = parseInt(input.value);
+
+                input.classList.remove(...coresLamina);
+
+                if (valor >= 0 && valor <= 6) {
+                    input.classList.add(`cor-lamina-${valor}`);
+                }
+            });
+        }
+
+
+        // Rode ao carregar a página
+        document.addEventListener('DOMContentLoaded', aplicarCoresInputs);
+
+        // Ou reexecutar após atualização dos dados:
+        setInterval(aplicarCoresInputs, 1000); // atualiza dinamicamente a cada 1s, se os dados mudarem
+    </script>
+
+</div>

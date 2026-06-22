@@ -1,0 +1,151 @@
+<!-- Fragmento de supervisão e parâmetros -->
+<div th:fragment="supervisaoTela" id="supervisaoTela" class="tela">
+    <style>
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            color: white;
+        }
+
+        .btn-start {
+            background-color: #28a745;
+        }
+
+        .btn-start:hover {
+            background-color: #218838;
+        }
+
+        .btn-stop {
+            background-color: #dc3545;
+        }
+
+        .btn-stop:hover {
+            background-color: #c82333;
+        }
+
+        .menu-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .menu-item {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #0056b3;
+        }
+
+        .subTela {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .subTela.active {
+            display: block;
+        }
+    </style>
+
+    <h1>Parâmetros operacionais da célula didática 4.0</h1>
+
+    <button id="mqttBtn" th:class="${brokerRunning} ? 'btn btn-stop' : 'btn btn-start'"
+        th:text="${brokerRunning} ? 'Desconectar Broker MQTT' : 'Conectar Broker MQTT'">
+    </button>
+
+    <p id="brokerStatus" th:text="'Status atual: ' + (${brokerRunning} ? 'Rodando' : 'Parado')"></p>
+
+    <!-- Navegação entre parâmetros das estações -->
+    <div class="menu-container">
+        <button class="menu-item" onclick="showSubTela('estoqueConfig')">Estoque</button>
+        <button class="menu-item" onclick="showSubTela('processoConfig')">Processo</button>
+        <button class="menu-item" onclick="showSubTela('montagemConfig')">Montagem</button>
+        <button class="menu-item" onclick="showSubTela('expedicaoConfig')">Expedição</button>
+    </div>
+
+    <!-- Parâmetros setorizados inseridos como fragmentos -->
+    <div th:insert="fragments/estoqueConfig :: estoqueConfig"></div>
+    <div th:insert="fragments/processoConfig :: processoConfig"></div>
+    <div th:insert="fragments/montagemConfig :: montagemConfig"></div>
+    <div th:insert="fragments/expedicaoConfig :: expedicaoConfig"></div>
+
+    <script>
+        const eventSource = new EventSource("/mqtt/stream");   // SSE para as mensagens Mqtt
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const btn = document.getElementById("mqttBtn");
+            const statusText = document.getElementById("brokerStatus");
+
+            btn.addEventListener("click", function () {
+                fetch('/mqtt/toggle', {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const running = data.brokerRunning;
+                            btn.textContent = running ? "Desconectar Broker MQTT" : "Conectar Broker MQTT";
+                            btn.classList.remove("btn-start", "btn-stop");
+                            btn.classList.add(running ? "btn-stop" : "btn-start");
+                            statusText.textContent = "Status atual: " + (running ? "Rodando" : "Parado");
+                        } else {
+                            alert("Erro ao alternar broker: " + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        alert("Erro na comunicação: " + error);
+                    });
+            });
+        });
+
+        function showSubTela(subId) {
+            const subs = document.querySelectorAll('#supervisaoTela .subTela');
+            subs.forEach(s => s.classList.remove('active'));
+            document.getElementById(subId).classList.add('active');
+        }
+
+        // Exibe o primeiro por padrão
+        showSubTela('estoqueConfig');
+
+        // Atualiza inputs de acordo com mensagens MQTT recebidas via SSE
+        eventSource.addEventListener("mqtt-data", function (event) {
+            if (!event.data) return;
+
+            // Formato da mensagem: clientId|variable:value
+            const [clientId, rest] = event.data.split("|");
+            if (!clientId || !rest) return;
+
+            const [variable, ...valueParts] = rest.split(":");
+            const value = valueParts.join(":").trim();
+
+            if (clientId === "SMART_a0b7654b44fc") { // Estoque
+                const input = document.getElementById(variable + "Est");
+                if (input) input.value = value;
+            } else if (clientId === "SMART_a0b7654b6628") { // Processo
+                const input = document.getElementById(variable + "Pro");
+                if (input) input.value = value;
+            } else if (clientId === "SMART_a0b7654b5448") { // Montagem
+                const input = document.getElementById(variable + "Mon");
+                if (input) input.value = value;
+            } else if (clientId === "SMART_a0b765496fb4") { // Expedição
+                const input = document.getElementById(variable + "Exp");
+                if (input) input.value = value;
+
+            }
+        });
+    </script>
+
+
+</div>

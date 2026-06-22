@@ -1,0 +1,80 @@
+<div th:fragment="processoConfig" id="processoConfig" class="subTela">
+    <style>
+        #varMqttProcesso {
+            width: 320px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        #varMqttProcesso>div {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        #varMqttProcesso>div>label {
+            width: 150px;
+        }
+
+        #varMqttProcesso>div>input {
+            flex: 1;
+            border-radius: 20px;
+            width: 80px;
+            height: 30px;
+            max-height: 25px;
+            border: none;
+            background-color: beige;
+            text-align: center;
+            color: blue;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+
+    <h2>Diagnóstico do Processo</h2>
+
+    <div id="varMqttProcesso">
+        <div>
+            <label>Temperatura:</label>
+            <input type="text" id="tempPro">
+        </div>
+        <div>
+            <label>Umidade:</label>
+            <input type="text" id="humiPro">
+        </div>
+        <div>
+            <label>Analog Input 0:</label>
+            <input type="text" id="ai00Pro">
+        </div>
+        <div>
+            <label>Analog Input 1:</label>
+            <input type="text" id="ai01Pro">
+        </div>
+        <div>
+            <label>Status:</label>
+            <input type="text" id="pstsPro">
+        </div>
+        <div>
+            <label>Tensão:</label>
+            <input type="text" id="vrmsPro">
+        </div>
+        <div>
+            <label>Corrente:</label>
+            <input type="text" id="irmsPro">
+        </div>
+        <div>
+            <label>Potência aparente:</label>
+            <input type="text" id="apppPro">
+        </div>
+        <div>
+            <label>Potência ativa:</label>
+            <input type="text" id="actpPro">
+        </div>
+        <div>
+            <label>Potência reativa:</label>
+            <input type="text" id="reapPro">
+        </div>
+    </div>
+</div>

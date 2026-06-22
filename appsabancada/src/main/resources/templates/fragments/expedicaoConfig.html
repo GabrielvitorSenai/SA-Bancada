@@ -1,0 +1,81 @@
+<div th:fragment="expedicaoConfig" id="expedicaoConfig" class="subTela">
+    <style>
+        #varMqttExpedicao {
+            width: 320px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        #varMqttExpedicao>div {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        #varMqttExpedicao>div>label {
+            width: 150px;
+        }
+
+        #varMqttExpedicao>div>input {
+            flex: 1;
+            border-radius: 20px;
+            width: 80px;
+            height: 30px;
+            max-height: 25px;
+            border: none;
+            background-color: beige;
+            text-align: center;
+            color: blue;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+
+    <h2>Diagnóstico da Expedição</h2>
+
+    <div id="varMqttExpedicao">
+        <div>
+            <label>Temperatura:</label>
+            <input type="text" id="tempExp">
+        </div>
+        <div>
+            <label>Umidade:</label>
+            <input type="text" id="humiExp">
+        </div>
+        <div>
+            <label>Analog Input 0:</label>
+            <input type="text" id="ai00Exp">
+        </div>
+        <div>
+            <label>Analog Input 1:</label>
+            <input type="text" id="ai01Exp">
+        </div>
+        <div>
+            <label>Status:</label>
+            <input type="text" id="pstsExp">
+        </div>
+        <div>
+            <label>Tensão:</label>
+            <input type="text" id="vrmsExp">
+        </div>
+        <div>
+            <label>Corrente:</label>
+            <input type="text" id="irmsExp">
+        </div>
+        <div>
+            <label>Potência aparente:</label>
+            <input type="text" id="apppExp">
+        </div>
+        <div>
+            <label>Potência ativa:</label>
+            <input type="text" id="actpExp">
+        </div>
+        <div>
+            <label>Potência reativa:</label>
+            <input type="text" id="reapExp">
+        </div>
+    </div>
+
+</div>

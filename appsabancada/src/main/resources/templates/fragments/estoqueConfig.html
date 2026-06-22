@@ -1,0 +1,235 @@
+<div th:fragment="estoqueConfig" id="estoqueConfig" class="subTela">
+  <style>
+    #estoqueContent {
+      display: flex;
+      gap: 20px;
+    }
+
+    #varMqttEstoque {
+      width: 320px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+
+    #varMqttEstoque>div {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    #varEstoque>div {
+      /* margin-top: 20px; */
+      display: flex;
+      /* margin-bottom: 8px; */
+      padding-top: 10px;
+      padding-bottom: 5px;
+    }
+
+    #varMqttEstoque>div>label,
+    #varEstoque>div>label {
+      width: 150px;
+    }
+
+    #varMqttEstoque>div>input,
+    #varEstoque>div>input {
+      flex: 1;
+      border-radius: 20px;
+      width: 80px;
+      height: 30px;
+      max-height: 25px;
+      border: none;
+      background-color: beige;
+      text-align: center;
+      color: blue;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    /* Estilo da div dos quadrados */
+    #quadradosWrapper {
+      width: 320px;
+      /* largura independente */
+      height: 400px;
+      margin-left: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+
+    #outer-container {
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      background-color: white;
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      background-color: #dcdcdc;
+      /* cinza claro */
+      border-radius: 6px;
+    }
+
+    .square {
+      width: 25px;
+      height: 25px;
+      background-color: #0077cc;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      position: absolute;
+      transform-origin: center center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      user-select: none;
+    }
+
+    .square span {
+      display: inline-block;
+      transform: rotate(90deg);
+      transform-origin: center center;
+    }
+  </style>
+
+  <h2>Diagnóstico do Estoque</h2>
+
+  <div id="estoqueContent">
+    <div id="varMqttEstoque">
+      <div><label>Temperatura:</label><input type="text" id="tempEst"></div>
+      <div><label>Umidade:</label><input type="text" id="humiEst"></div>
+      <div><label>Analog Input 0:</label><input type="text" id="ai00Est"></div>
+      <div><label>Analog Input 1:</label><input type="text" id="ai01Est"></div>
+      <div><label>Status:</label><input type="text" id="pstsEst"></div>
+      <div><label>Tensão:</label><input type="text" id="vrmsEst"></div>
+      <div><label>Corrente:</label><input type="text" id="irmsEst"></div>
+      <div><label>Potência aparente:</label><input type="text" id="apppEst"></div>
+      <div><label>Potência ativa:</label><input type="text" id="actpEst"></div>
+      <div><label>Potência reativa:</label><input type="text" id="reapEst"></div>
+    </div>
+
+    <div id="quadradosWrapper">
+      <div id="outer-container">
+        <div id="container"></div>
+      </div>
+
+      <div id="varEstoque">
+        <div><label>Atuador Linear:</label><input type="text" id="atuadorLinearEst"></div>
+        <div><label>Atuador Rotativo:</label><input type="text" id="atuadorRotativoEst"></div>
+        <div><label>Esteira 1:</label><input type="text" id="esteira1Est" name="esteira1Est"></div>
+        <div><label>Esteira 2:</label><input type="text" id="esteira2Est" name="esteira2Est"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById("container");
+
+    const centerX = 150;
+    const centerY = 480;
+    const squareSize = 25;
+    const startAngle = 105;
+    const endAngle = 75;
+
+    const radii = [450, 420, 390, 360, 330];
+    const squaresPerArc = [6, 6, 6, 6, 4];
+
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    let savedAnglesForFifthArc = [];
+    let counter = 1;
+
+    // Array para guardar as divs dos quadrados para acesso posterior
+    const squares = [];
+
+    for (let arc = 0; arc < radii.length; arc++) {
+      const radius = radii[arc];
+      const squaresCount = squaresPerArc[arc];
+
+      let angles = [];
+
+      if (arc < 4) {
+        const angleStep = (startAngle - endAngle) / (squaresCount - 1);
+        for (let i = 0; i < squaresCount; i++) {
+          angles.push(startAngle - i * angleStep);
+        }
+        if (arc === 3) {
+          savedAnglesForFifthArc = angles.slice(0, 4);
+        }
+      } else {
+        angles = savedAnglesForFifthArc;
+      }
+
+      for (let i = 0; i < angles.length; i++) {
+        const angleDeg = angles[i];
+        const angleRad = degToRad(angleDeg);
+
+        const x = centerX + radius * Math.cos(angleRad) - squareSize / 2;
+        const y = centerY - radius * Math.sin(angleRad) - squareSize / 2;
+
+        const square = document.createElement("div");
+        square.className = "square";
+        square.style.left = `${x}px`;
+        square.style.top = `${y}px`;
+        square.style.transform = `rotate(${-angleDeg}deg)`;
+
+        const label = document.createElement("span");
+        label.innerText = counter++;
+        square.appendChild(label);
+
+        container.appendChild(square);
+
+        squares.push(square);  // guarda referência
+      }
+    }
+
+    function applyColors(vetor) {
+      const colorsMap = {
+        0: "#ffffff", // Branco
+        1: "#000000", // Preto
+        2: "#ff0000", // Vermelho
+        3: "#0000ff"  // Azul
+      };
+
+      for (let i = 0; i < squares.length; i++) {
+        const corIndex = vetor[i];
+        const color = colorsMap.hasOwnProperty(corIndex) ? colorsMap[corIndex] : "#0077cc";
+        squares[i].style.backgroundColor = color;
+
+        // Texto branco para cores escuras, preto para claro
+        if (corIndex === 0 || corIndex === 2) {
+          squares[i].style.color = "#000"; // Preto para Branco e Vermelho
+        } else {
+          squares[i].style.color = "#fff"; // Branco para Preto e Azul
+        }
+      }
+    }
+
+    // Exemplo
+    const vetorExemplo = [
+      0, 1, 2, 3, 0, 1,
+      2, 3, 0, 1, 2, 3,
+      0, 1, 2, 3, 0, 1,
+      2, 3, 0, 1, 2, 3,
+      0, 1, 2, 3
+    ];
+
+    // applyColors(vetorExemplo);
+  </script>
+
+
+
+
+
+</div>

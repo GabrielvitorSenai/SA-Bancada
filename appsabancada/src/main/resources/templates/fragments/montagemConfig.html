@@ -1,0 +1,80 @@
+<div th:fragment="montagemConfig" id="montagemConfig" class="subTela">
+    <style>
+        #varMqttMontagem {
+            width: 320px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        #varMqttMontagem>div {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        #varMqttMontagem>div>label {
+            width: 150px;
+        }
+
+        #varMqttMontagem>div>input {
+            flex: 1;
+            border-radius: 20px;
+            width: 80px;
+            height: 30px;
+            max-height: 25px;
+            border: none;
+            background-color: beige;
+            text-align: center;
+            color: blue;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+
+    <h2>Diagnóstico da Montagem</h2>
+
+    <div id="varMqttMontagem">
+        <div>
+            <label>Temperatura:</label>
+            <input type="text" id="tempMon">
+        </div>
+        <div>
+            <label>Umidade:</label>
+            <input type="text" id="humiMon">
+        </div>
+        <div>
+            <label>Analog Input 0:</label>
+            <input type="text" id="ai00Mon">
+        </div>
+        <div>
+            <label>Analog Input 1:</label>
+            <input type="text" id="ai01Mon">
+        </div>
+        <div>
+            <label>Status:</label>
+            <input type="text" id="pstsMon">
+        </div>
+        <div>
+            <label>Tensão:</label>
+            <input type="text" id="vrmsMon">
+        </div>
+        <div>
+            <label>Corrente:</label>
+            <input type="text" id="irmsMon">
+        </div>
+        <div>
+            <label>Potência aparente:</label>
+            <input type="text" id="apppMon">
+        </div>
+        <div>
+            <label>Potência ativa:</label>
+            <input type="text" id="actpMon">
+        </div>
+        <div>
+            <label>Potência reativa:</label>
+            <input type="text" id="reapMon">
+        </div>
+    </div>
+</div>

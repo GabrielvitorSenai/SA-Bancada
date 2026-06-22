@@ -1,0 +1,377 @@
+<!-- Fragmento de visualização da produção -->
+<div th:fragment="producaoTela" id="producaoTela" class="tela">
+
+    <style>
+        .divMagazineEstoque {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Centraliza horizontalmente o conteúdo */
+        }
+
+        .divMagazineExpedicao {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-right: 3px;
+            padding-left: 3px;
+            /* Centraliza a grid expedicao */
+        }
+
+        .estoque-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            /* 6 colunas fixas */
+            gap: 5px;
+            width: 100%;
+            max-width: 540px;
+            /* 6 colunas de ~85px + gaps */
+            margin: 10px auto;
+            box-sizing: border-box;
+        }
+
+        .expedicao-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            /* 4 colunas fixas */
+            gap: 5px;
+            width: 100%;
+            max-width: 360px;
+            /* 4 colunas de ~85px + gaps */
+            margin: 10px auto;
+            box-sizing: border-box;
+        }
+
+        .estoque-grid label {
+            width: 100%;
+            max-width: 85px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e0e0e0;
+            border: 1px solid #999;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 6px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .expedicao-grid label {
+            width: 100%;
+            max-width: 85px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e0e0e0;
+            border: 1px solid #999;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 6px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .estoque-grid label:hover,
+        .expedicao-grid label:hover {
+            transform: translateY(-2px);
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        #tempoProducao {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .contagem {
+            /* font-size: 28px; */
+            font-weight: bold;
+            color: blue;
+            text-align: center;
+            align-items: center;
+            align-content: center;
+        }
+
+        #tempoContador {
+            color: #a77408;
+            /* por exemplo, rosa forte */
+        }
+
+
+        .divBancadaOperacao input {
+            height: 60%;
+            margin-top: 3%;
+            /* text-align: center; */
+            padding: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            gap: 20px;
+        }
+
+        .opEstoque {
+            color: #1f1;
+            text-align: center;
+            width: 10%;
+            margin-left: 10px;
+        }
+
+        .opProcesso {
+            color: #f11;
+            text-align: center;
+            width: 10%;
+            margin-left: 20px;
+        }
+
+        .opMontagem {
+            color: #ff1;
+            text-align: center;
+            width: 15%;
+            margin-left: 15px;
+        }
+
+        .opExpedicao {
+            color: #1ff;
+            width: 10%;
+            text-align: center;
+            margin-left: 40px;
+            /* margin-right: 10px; */
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 720px;
+            /* ou ajuste como preferir */
+            aspect-ratio: 16 / 9;
+            position: relative;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            margin: 0 auto;
+            /* centraliza horizontalmente se necessário */
+        }
+
+        .camera-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .camera-fallback {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ddd;
+            color: #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            padding: 10px;
+            display: none;
+            /* oculto por padrão */
+        }
+    </style>
+
+    <!-- <h1>Produção Screen</h1> -->
+    <!-- <div class="imgBancada"> -->
+    <div class="relativeProducao">
+        <div class="divMagazineEstoque">
+            <!-- Thymeleaf, JSP ou HTML puro -->
+            <div style="width: 100%;">
+                <h3 style="text-align: center;">appsabancada Cam 1</h3>
+
+                <div class="camera-container">
+                    <img id="camera1" src="http://10.74.241.245/videostream.cgi?rate=5&usr=admin&pwd=@cEr2025"
+                        alt="Stream MJPEG APEXiS"
+                        onerror="document.getElementById('fallback1').style.display = 'flex'; this.style.display='none';" />
+                    <div id="fallback1" class="camera-fallback">
+                        Câmera não disponível
+                    </div>
+                </div>
+            </div>
+
+            <h2>Magazine de Estoque</h2>
+
+            <div class="estoque-grid">
+                <label id="estoque-1">1</label>
+                <label id="estoque-2">2</label>
+                <label id="estoque-3">3</label>
+                <label id="estoque-4">4</label>
+                <label id="estoque-5">5</label>
+                <label id="estoque-6">6</label>
+                <label id="estoque-7">7</label>
+                <label id="estoque-8">8</label>
+                <label id="estoque-9">9</label>
+                <label id="estoque-10">10</label>
+                <label id="estoque-11">11</label>
+                <label id="estoque-12">12</label>
+                <label id="estoque-13">13</label>
+                <label id="estoque-14">14</label>
+                <label id="estoque-15">15</label>
+                <label id="estoque-16">16</label>
+                <label id="estoque-17">17</label>
+                <label id="estoque-18">18</label>
+                <label id="estoque-19">19</label>
+                <label id="estoque-20">20</label>
+                <label id="estoque-21">21</label>
+                <label id="estoque-22">22</label>
+                <label id="estoque-23">23</label>
+                <label id="estoque-24">24</label>
+                <label id="estoque-25">25</label>
+                <label id="estoque-26">26</label>
+                <label id="estoque-27">27</label>
+                <label id="estoque-28">28</label>
+            </div>
+
+        </div>
+        <div id="divBancada" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada" src="assets/bancada/Smart40.png" alt="bancada">
+        </div>
+        <div id="divBancadaStatus" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada_Estoque" src="assets/bancada/Smart40_Estoque_0.png"
+                alt="bancada">
+        </div>
+        <div id="divBancadaStatus" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada_Processo" src="assets/bancada/Smart40_Processo_0.png"
+                alt="bancada">
+        </div>
+        <div id="divBancadaStatus" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada_Montagem" src="assets/bancada/Smart40_Montagem_0.png"
+                alt="bancada">
+        </div>
+        <div id="divBancadaStatus" class="divBancada">
+            <img style="width: 60%; height: auto;" id="bancada_Expedicao" src="assets/bancada/Smart40_Expedicao_0.png"
+                alt="bancada">
+        </div>
+        <div class="divMagazineExpedicao">
+            <!-- Thymeleaf, JSP ou HTML puro -->
+            <div style="width: 100%;">
+                <h3 style="text-align: center;">appsabancada Cam 2</h3>
+
+                <div class="camera-container">
+                    <img id="camera2" src="http://10.74.241.245/videostream.cgi?rate=5&usr=admin&pwd=@cEr2025"
+                        alt="Stream MJPEG APEXiS"
+                        onerror="document.getElementById('fallback2').style.display = 'flex'; this.style.display='none';" />
+                    <div id="fallback2" class="camera-fallback">
+                        Câmera não disponível
+                    </div>
+                </div>
+            </div>
+
+            <h2>Magazine de Expedição</h2>
+            <div class="expedicao-grid">
+                <label id="expedicao-1">1</label>
+                <label id="expedicao-2">2</label>
+                <label id="expedicao-3">3</label>
+                <label id="expedicao-4">4</label>
+                <label id="expedicao-5">5</label>
+                <label id="expedicao-6">6</label>
+                <label id="expedicao-7">7</label>
+                <label id="expedicao-8">8</label>
+                <label id="expedicao-9">9</label>
+                <label id="expedicao-10">10</label>
+                <label id="expedicao-11">11</label>
+                <label id="expedicao-12">12</label>
+            </div>
+
+        </div>
+
+        <div class="divBancadaOperacao" style="display: block;">
+            <input type="text" id="statusOpEstoque" name="statusOpEstoque" class="transparente opEstoque"
+                placeholder="estoque">
+            <input type="text" id="statusOpProcesso" name="statusOpProcesso" class="transparente opProcesso"
+                placeholder="processo">
+            <input type="text" id="statusOpMontagem" name="statusOpMontagem" class="transparente opMontagem"
+                placeholder="montagem">
+            <input type="text" id="statusOpExpedicao" name="statusOpExpedicao" class="transparente opExpedicao"
+                placeholder="expedicao">
+
+        </div>
+    </div>
+
+
+
+    <div class="divTempo">
+        <div id="tempoProducao">
+            <div class="contagem"><label id="msgTempoProducao" style="font-size: 30px;" for="tempoContador">Tempo de
+                    produção:</label></div>
+            <div id="tempoContador" class="contagem" style="font-size: 30px;">00:00</div>
+
+            <button id="btnExecutarPedidoProducao" onclick="fases(1)">Executar Pedido</button>
+
+
+        </div>
+    </div>
+    <!-- </div> -->
+    <script>
+        let inicioTimestamp = null;
+        let contadorInterval = null;
+
+        // Essas variáveis você já define em seu código:
+        let pedidoIniciado = false;
+        let pedidoConcluido = false;
+
+        function formatarMMSS(segundosTotais) {
+            const mins = Math.floor(segundosTotais / 60);
+            const secs = segundosTotais % 60;
+            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
+        function iniciarContador() {
+            if (contadorInterval) return;       // já está rodando
+            inicioTimestamp = Date.now();
+            document.getElementById('msgTempoProducao').textContent = 'Tempo de produção:';
+            document.getElementById('tempoContador').textContent = '00:00';
+
+            contadorInterval = setInterval(() => {
+                const diffMs = Date.now() - inicioTimestamp;
+                const diffSec = Math.floor(diffMs / 1000);
+                document.getElementById('tempoContador').textContent = formatarMMSS(diffSec);
+
+                // Se a variável indicar que o pedido foi concluído, para o contador
+                if (pedidoConcluido) {
+                    pararContador();
+                }
+            }, 1000);
+        }
+
+        function pararContador() {
+            clearInterval(contadorInterval);
+
+            document.getElementById('msgTempoProducao').textContent = 'Pedido concluido em:';
+            contadorInterval = null;
+        }
+
+        // Exemplo de função que dispara o início do pedido
+        function iniciarPedido() {
+            pedidoIniciado = true;
+            pedidoConcluido = false;
+            iniciarContador();
+
+        }
+
+        // Exemplo de função que marca conclusão do pedido
+        function concluirPedido() {
+            pedidoConcluido = true;
+
+        }
+
+    </script>
+
+
+
+</div>

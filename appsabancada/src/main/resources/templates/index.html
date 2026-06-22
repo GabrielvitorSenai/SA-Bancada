@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <title>appsabancada</title>
+    <link rel="stylesheet" th:href="@{/css/smart.css}">
+
+</head>
+
+<body>
+    <!-- Cabeçalho principal da aplicação -->
+    <header class="site-header">
+        <div class="header-brand">
+            <span class="brand-badge">LD 4.0</span>
+            <div>
+                <h1>appsabancada</h1>
+                <p class="header-subtitle">Gestão visual de pedidos, produção e supervisão industrial</p>
+            </div>
+        </div>
+        <nav class="nav-bar" aria-label="Menu principal">
+            <ul class="menu">
+                <li><a href="#" onclick="showTela('inicioTela', this)">Início</a></li>
+                <li><a href="#" onclick="showTela('lojaTela', this)">Loja</a></li>
+                <li><a href="#" onclick="showTela('pedidosTela', this)">Pedidos</a></li>
+                <li><a href="#" onclick="showTela('gestorTela', this)">Gestão</a></li>
+                <li><a href="#" onclick="showTela('producaoTela', this)">Linha</a></li>
+                <li><a href="#" onclick="showTela('monitorTela', this)">Painel</a></li>
+                <li><a href="#" onclick="showTela('supervisaoTela', this)">Supervisão</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Áreas funcionais carregadas por fragmentos Thymeleaf -->
+    <div th:insert="fragments/inicioTela :: inicioTela"></div>
+    <div th:insert="fragments/lojaTela :: lojaTela"></div>
+    <div th:insert="fragments/pedidosTela :: pedidosTela"></div>
+    <div th:insert="fragments/gestorTela :: gestorTela"></div>
+    <div th:insert="fragments/producaoTela :: producaoTela"></div>
+    <div th:insert="fragments/monitorTela :: monitorTela"></div>
+    <div th:insert="fragments/supervisaoTela :: supervisaoTela"></div>
+    <script>
+        function showTela(screenId, menuLink) {
+            const screens = document.querySelectorAll('.tela');
+            screens.forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            document.querySelectorAll('.menu a').forEach(link => link.classList.remove('selected'));
+            const selectedLink = menuLink || document.querySelector(`.menu a[onclick*="${screenId}"]`);
+            if (selectedLink) selectedLink.classList.add('selected');
+        }
+
+        showTela('inicioTela');
+    </script>
+    <script th:src="@{/js/smart.js}"></script>
+
+</body>
+
+</html>

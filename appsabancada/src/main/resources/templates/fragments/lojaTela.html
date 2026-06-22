@@ -1,0 +1,831 @@
+<!-- Fragmento de montagem do pedido -->
+<div th:fragment="lojaTela" id="lojaTela" class="tela">
+    <div class="tipoBlock">
+        <div class="input-box">
+            <label for="tipoPedido" style="text-align: left; padding-top: 5px;">Tipo de Pedido:</label>
+            <select id="tipoPedido" onchange="renderBlocos()">
+                <option value="simples">Simples (1 bloco)</option>
+                <option value="duplo">Duplo (2 blocos)</option>
+                <option value="triplo">Triplo (3 blocos)</option>
+            </select>
+        </div>
+        <div class="input-box">
+            <label for="corTampa" style="text-align: left; padding-top: 5px;">Cor da Tampa:</label>
+            <select id="corTampa" onchange="revisarPedido()">
+                <option value="1">Preto</option>
+                <option value="2">Vermelho</option>
+                <option value="3">Azul</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="main-blocos">
+        <div id="blocosContainer"></div>
+
+        <div id="pedido-pronto" class="montado">
+            <h2>Produto</h2>
+            <p id="pedido-id" style="margin-top: 4px; font-weight: bold;"></p>
+            <div class="relative1">
+
+
+                <div id="divAlturaTampa" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="tampa" th:src="@{/assets/bloco/rTampa0.png}"
+                        alt="tampa" />
+                </div>
+
+                <div id="divAlturaAndar1" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="andar1Pedido"
+                        th:src="@{/assets/bloco/rBlocoCor0.png}" alt="bloco" />
+                </div>
+                <div id="divAlturaAndar2" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="andar2Pedido"
+                        th:src="@{/assets/bloco/rBlocoCor0.png}" alt="bloco" />
+                </div>
+                <div id="divAlturaAndar3" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="andar3Pedido"
+                        th:src="@{/assets/bloco/rBlocoCor0.png}" alt="bloco" />
+                </div>
+
+                <!-- Seleção das lâminas -->
+                <div id="divAlturaLaminaAndar1Pos1" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos1andar1Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina1" />
+                </div>
+                <div id="divAlturaLaminaAndar2Pos1" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos1andar2Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina1" />
+                </div>
+                <div id="divAlturaLaminaAndar3Pos1" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos1andar3Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina1" />
+                </div>
+
+                <!-- Padrões do terceiro nível -->
+                <div id="divAlturaPadraoAndar3Pos1" class="absolute0">
+                    <img style="max-width: 100%; max-height: 290px; height: auto;" id="padrao1andar3Pedido"
+                        th:src="@{/assets/padroes/rpadrao0-1.png}" alt="Padrao1" />
+                </div>
+                <div id="divAlturaPadraoAndar3Pos2" class="absolute0">
+                    <img style="max-width: 100%; max-height: 290px; height: auto;" id="padrao2andar3Pedido"
+                        th:src="@{/assets/padroes/rpadrao0-2.png}" alt="Padrao2" />
+                </div>
+
+                <!-- Lâminas da segunda posição -->
+                <div id="divAlturaLaminaAndar1Pos2" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos2andar1Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina2" />
+                </div>
+                <div id="divAlturaLaminaAndar2Pos2" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos2andar2Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina2" />
+                </div>
+                <div id="divAlturaLaminaAndar3Pos2" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos2andar3Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina2" />
+                </div>
+
+                <!-- Padrões Andar 2 -->
+                <div id="divAlturaPadraoAndar2Pos1" class="absolute0">
+                    <img style="max-width: 100%; max-height: 290px; height: auto;" id="padrao1andar2Pedido"
+                        th:src="@{/assets/padroes/rpadrao0-1.png}" alt="Padrao1" />
+                </div>
+                <div id="divAlturaPadraoAndar2Pos2" class="absolute0">
+                    <img style="max-width: 100%; max-height: 290px; height: auto;" id="padrao2andar2Pedido"
+                        th:src="@{/assets/padroes/rpadrao0-2.png}" alt="Padrao2" />
+                </div>
+
+                <!-- Laminas Pos3 -->
+                <div id="divAlturaLaminaAndar1Pos3" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos3andar1Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina3" />
+                </div>
+                <div id="divAlturaLaminaAndar2Pos3" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos3andar2Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina3" />
+                </div>
+                <div id="divAlturaLaminaAndar3Pos3" class="absolute0">
+                    <img style="max-width: 100%; height: auto;" id="pos3andar3Pedido"
+                        th:src="@{/assets/laminas/lamina1-0.png}" alt="Lamina3" />
+                </div>
+
+                <!-- Padrões Andar 1 -->
+                <div id="divAlturaPadraoAndar1Pos1" class="absolute0">
+                    <img style="max-width: 100%; max-height: 290px; height: auto;" id="padrao1andar1Pedido"
+                        th:src="@{/assets/padroes/rpadrao0-1.png}" alt="Padrao1" />
+                </div>
+                <div id="divAlturaPadraoAndar1Pos2" class="absolute0">
+                    <img style="max-width: 100%; max-height: 290px; height: auto;" id="padrao2andar1Pedido"
+                        th:src="@{/assets/padroes/rpadrao0-2.png}" alt="Padrao2" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tipoBlock">
+        <button onclick="salvarPedido()">Salvar Pedido</button>
+        <button onclick="executarPedido()">Executar Pedido</button>
+    </div>
+    <script>
+        // função para renderizar a construção dinamica do bloco
+        function renderBlocos() {
+
+            const tipo = document.getElementById("tipoPedido").value;
+            //const corTampa = document.getElementById("corTampa").value;
+            const container = document.getElementById("blocosContainer");
+            container.innerHTML = "";
+
+            document.getElementById("pedido-pronto").style.display = 'none';
+
+            let blocos = tipo === "simples" ? 1 : tipo === "duplo" ? 2 : 3;
+
+            for (let b = 0; b < blocos; b++) {
+                const nBloco = b + 1;
+                const blocoDiv = document.createElement("div");
+                const tipo = document.getElementById("tipoPedido").value;
+                blocoDiv.classList.add("bloco");
+                blocoDiv.id = "bloco-container-" + nBloco;
+                blocoDiv.innerHTML = `
+            <h2>Andar ${b + 1}</h2>
+
+            <div class="pedido-view spin" id="pedido-view${nBloco}">
+                    <img class="imagem" id="bloco-${nBloco}" src="assets/bloco/rBlocoCor0.png" alt="Bloco">
+                    <img class="imagem" id="lamina${nBloco}-3" src="#" alt="Lâmina 3">
+                    <img class="imagem" id="lamina${nBloco}-1" src="#" alt="Lâmina 1">
+                    <img class="imagem" id="lamina${nBloco}-2" src="#" alt="Lâmina 2">
+                    <img class="imagem" id="padrao${nBloco}-1" src="#" alt="Padrão 1">
+                    <img class="imagem" id="padrao${nBloco}-2" src="#" alt="Padrão 2">
+                    <img class="imagem" id="padrao${nBloco}-3" src="#" alt="Padrão 3">
+                    <button id="spin${nBloco}" class="spin" disabled onclick="spin(${nBloco})"><span
+                            class="material-symbols-rounded">></span></button>
+            </div>
+            
+            <div class="input-box">
+                <label  for="block-color-${nBloco}">Cor do Bloco:
+                    <select name="block-color-${nBloco}" id="block-color-${nBloco}" onchange="changePedidoView(${nBloco})">
+                        <option value="">Nenhum</option>
+                        <option value="preto">Preto</option>
+                        <option value="vermelho">Vermelho</option>
+                        <option value="azul">Azul</option>
+                    </select>
+                </label>
+            </div>
+            <div class="input-combo">
+                        <div class="input-box">
+                            <label for="l1-color-1">Cor Lâmina 1</label>
+                            <select name="l1-color-1" id="l1-color-${nBloco}" disabled onchange="changePedidoView(${nBloco}, this.value)">
+                                <option value="" hidden selected>Selecione</option>
+                                <option value="1">Vermelho</option>
+                                <option value="2">Azul</option>
+                                <option value="3">Amarelo</option>
+                                <option value="4">Verde</option>
+                                <option value="5">Preto</option>
+                                <option value="6">Branco</option>
+                            </select>
+                        </div>
+                        <div class="input-box">
+                            <label for="l1-pattern-1">Padrão Lâmina 1</label>
+                            <select name="l1-pattern-1" id="l1-pattern-${nBloco}" disabled onchange="changePedidoView(${nBloco}, this.value)">
+                                <option value="" hidden selected>Selecione</option>
+                                <option value="">Nenhum</option>
+                                <option value="1">Casa</option>
+                                <option value="2">Navio</option>
+                                <option value="3">Estrela</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-combo">
+                        <div class="input-box">
+                            <label for="l2-color-1">Cor Lâmina 2</label>
+                            <select name="l2-color-1" id="l2-color-${nBloco}" disabled onchange="changePedidoView(${nBloco}, this.value)">
+                                <option value="" hidden selected>Selecione</option>
+                                <option value="1">Vermelho</option>
+                                <option value="2">Azul</option>
+                                <option value="3">Amarelo</option>
+                                <option value="4">Verde</option>
+                                <option value="5">Preto</option>
+                                <option value="6">Branco</option>
+                            </select>
+                        </div>
+                        <div class="input-box">
+                            <label for="l2-pattern-1">Padrão Lâmina 2</label>
+                            <select name="l2-pattern-1" id="l2-pattern-${nBloco}" disabled onchange="changePedidoView(${nBloco}, this.value)">
+                                <option value="" hidden selected>Selecione</option>
+                                <option value="">Nenhum</option>
+                                <option value="1">Casa</option>
+                                <option value="2">Navio</option>
+                                <option value="3">Estrela</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-combo">
+                        <div class="input-box">
+                            <label for="l3-color-1">Cor Lâmina 3</label>
+                            <select name="l3-color-1" id="l3-color-${nBloco}" disabled onchange="changePedidoView(${nBloco}, this.value)">
+                                <option value="" hidden selected>Selecione</option>
+                                <option value="1">Vermelho</option>
+                                <option value="2">Azul</option>
+                                <option value="3">Amarelo</option>
+                                <option value="4">Verde</option>
+                                <option value="5">Preto</option>
+                                <option value="6">Branco</option>
+                            </select>
+                        </div>
+                        <div class="input-box">
+                            <label for="l3-pattern-1">Padrão Lâmina 3</label>
+                            <select name="l3-pattern-1" id="l3-pattern-${nBloco}" disabled onchange="changePedidoView(${nBloco}, this.value)">
+                                <option value="" hidden selected>Selecione</option>
+                                <option value="">Nenhum</option>
+                                <option value="1">Casa</option>
+                                <option value="2">Navio</option>
+                                <option value="3">Estrela</option>
+                            </select>
+                        </div>
+            </div>
+        `;
+
+                container.appendChild(blocoDiv);
+                //revisarPedido();
+            }
+        }
+
+        // função para revisar a edição dos blocos do pedido
+        function revisarPedido() {
+
+            const tipo = document.getElementById("tipoPedido").value;
+            const corTampa = document.getElementById("corTampa").value;
+
+            document.getElementById("pedido-pronto").style.display = "flex";
+            document.getElementById("pedido-pronto").style.flexDirection = "column";
+
+            let andares = tipo === "simples" ? 1 : tipo === "duplo" ? 2 : 3;
+
+
+            //Define a sequencia das imagens através da propriedade zIndex
+            document.getElementById("divAlturaAndar1").style.zIndex = "5";
+            //document.getElementById("divAlturaAndar1").style.zIndex = "23";
+            document.getElementById("divAlturaLaminaAndar1Pos1").style.zIndex = "6";
+            document.getElementById("divAlturaLaminaAndar1Pos3").style.zIndex = "7";
+            document.getElementById("divAlturaLaminaAndar1Pos2").style.zIndex = "8";
+            document.getElementById("divAlturaPadraoAndar1Pos1").style.zIndex = "9";
+            document.getElementById("divAlturaPadraoAndar1Pos2").style.zIndex = "10";
+
+            document.getElementById("divAlturaAndar2").style.zIndex = "11";
+            //document.getElementById("divAlturaAndar2").style.zIndex = "17";
+            document.getElementById("divAlturaLaminaAndar2Pos1").style.zIndex = "12";
+            document.getElementById("divAlturaLaminaAndar2Pos3").style.zIndex = "13";
+            document.getElementById("divAlturaLaminaAndar2Pos2").style.zIndex = "14";
+            document.getElementById("divAlturaPadraoAndar2Pos1").style.zIndex = "15";
+            document.getElementById("divAlturaPadraoAndar2Pos2").style.zIndex = "16";
+
+            document.getElementById("divAlturaAndar3").style.zIndex = "17";
+            //document.getElementById("divAlturaAndar3").style.zIndex = "11";
+            document.getElementById("divAlturaLaminaAndar3Pos1").style.zIndex = "18";
+            document.getElementById("divAlturaLaminaAndar3Pos3").style.zIndex = "19";
+            document.getElementById("divAlturaLaminaAndar3Pos2").style.zIndex = "20";
+            document.getElementById("divAlturaPadraoAndar3Pos1").style.zIndex = "21";
+            document.getElementById("divAlturaPadraoAndar3Pos2").style.zIndex = "22";
+
+            document.getElementById("divAlturaTampa").style.zIndex = "23";
+            //document.getElementById("divAlturaTampa").style.zIndex = "5";
+            document.height
+
+            //Define se precisa colocar a tampa
+            if (andares != 0) {
+                document.getElementById("tampa").src = "assets/bloco/rTampa" + corTampa + ".png";
+            }
+            else {
+                document.getElementById("tampa").src = "assets/bloco/BlocoCor00.png";
+            }
+
+
+            //Define a cor do Bloco que deve aparecer
+
+            document.getElementById("andar1Pedido").src = "assets/bloco/rBlocoCor0.png";
+            document.getElementById("andar2Pedido").src = "assets/bloco/rBlocoCor0.png";
+            document.getElementById("andar3Pedido").src = "assets/bloco/rBlocoCor0.png";
+
+            //Define a cor das laminas da ESQUERDA que deve aparecer em cada andar
+            document.getElementById("pos1andar1Pedido").src = "assets/laminas/lamina1-0.png";
+            document.getElementById("pos1andar2Pedido").src = "assets/laminas/lamina1-0.png";
+            document.getElementById("pos1andar3Pedido").src = "assets/laminas/lamina1-0.png";
+
+            //Define o padrão das laminas da ESQUERDA que deve aparecer em cada
+            document.getElementById("padrao1andar1Pedido").src = "assets/padroes/rpadrao0-1.png";
+            document.getElementById("padrao1andar2Pedido").src = "assets/padroes/rpadrao0-1.png";
+            document.getElementById("padrao1andar3Pedido").src = "assets/padroes/rpadrao0-1.png";
+
+            //Define a cor das laminas da FRENTE que deve aparecer em cada andar
+            document.getElementById("pos2andar1Pedido").src = "assets/laminas/lamina1-0.png";
+            document.getElementById("pos2andar2Pedido").src = "assets/laminas/lamina1-0.png";
+            document.getElementById("pos2andar3Pedido").src = "assets/laminas/lamina1-0.png";
+
+            //Define o padrão das laminas da FRENTE que deve aparecer em cada andar
+            document.getElementById("padrao2andar1Pedido").src = "assets/padroes/rpadrao0-2.png";
+            document.getElementById("padrao2andar2Pedido").src = "assets/padroes/rpadrao0-2.png";
+            document.getElementById("padrao2andar3Pedido").src = "assets/padroes/rpadrao0-2.png";
+
+            //Define a cor das laminas da DIREITA que deve aparecer em cada andar
+            document.getElementById("pos3andar1Pedido").src = "assets/laminas/lamina1-0.png";
+            document.getElementById("pos3andar2Pedido").src = "assets/laminas/lamina1-0.png";
+            document.getElementById("pos3andar3Pedido").src = "assets/laminas/lamina1-0.png";
+
+            for (let b = 0; b < andares; b++) {
+                const nBloco = b + 1;
+                let blockColor = document.getElementById("block-color-" + nBloco).value === "" ? "nenhum" : document.getElementById("block-color-" + nBloco).value;
+                //alert(blockColor);
+                const idCorBloco = (blockColor === "preto" ? 1 : blockColor === "vermelho" ? 2 : blockColor === "azul" ? 3 : 0);
+
+
+                const l1Color = document.getElementById("l1-color-" + nBloco).value === '' ? 0 : document.getElementById("l1-color-" + nBloco).value;
+                const l2Color = document.getElementById("l2-color-" + nBloco).value === '' ? 0 : document.getElementById("l2-color-" + nBloco).value;
+                const l3Color = document.getElementById("l3-color-" + nBloco).value === '' ? 0 : document.getElementById("l3-color-" + nBloco).value;
+
+                const l1Pattern = document.getElementById("l1-pattern-" + nBloco).value === '' ? 0 : document.getElementById("l1-pattern-" + nBloco).value;
+                const l2Pattern = document.getElementById("l2-pattern-" + nBloco).value === '' ? 0 : document.getElementById("l2-pattern-" + nBloco).value;
+                const l3Pattern = document.getElementById("l3-pattern-" + nBloco).value === '' ? 0 : document.getElementById("l3-pattern-" + nBloco).value;
+
+                document.getElementById("andar" + nBloco + "Pedido").src = "assets/bloco/rBlocoCor" + idCorBloco + ".png";
+                document.getElementById("pos1andar" + nBloco + "Pedido").src = "assets/laminas/lamina1-" + l1Color + ".png";
+                document.getElementById("pos2andar" + nBloco + "Pedido").src = "assets/laminas/lamina2-" + l2Color + ".png";
+                document.getElementById("pos3andar" + nBloco + "Pedido").src = "assets/laminas/lamina3-" + l3Color + ".png";
+
+                document.getElementById("padrao1andar" + nBloco + "Pedido").src = "assets/padroes/rpadrao" + l1Pattern + "-1.png";
+                document.getElementById("padrao2andar" + nBloco + "Pedido").src = "assets/padroes/rpadrao" + l2Pattern + "-2.png";
+
+                if (l1Color == 5) {
+                    document.getElementById("padrao1andar" + nBloco + "Pedido").style.filter = "invert(1)";
+                } else {
+                    document.getElementById("padrao1andar" + nBloco + "Pedido").style.filter = "invert(0)";
+
+                }
+
+                if (l2Color == 5) {
+                    document.getElementById("padrao2andar" + nBloco + "Pedido").style.filter = "invert(1)";
+                } else {
+                    document.getElementById("padrao2andar" + nBloco + "Pedido").style.filter = "invert(0)";
+
+                }
+
+            }
+
+            var alturaimagem = document.getElementById("andar1Pedido").offsetHeight;
+            var fatorMultiplicador = 0.445;
+
+            //alert("alturaimagem: " + alturaimagem);
+
+            var altura1 = "35px";
+            var altura2 = 1 * fatorMultiplicador * alturaimagem + "px";
+            var altura3 = 2 * fatorMultiplicador * alturaimagem + "px";
+            var altura4 = 3 * fatorMultiplicador * alturaimagem + "px";
+
+            //alert("altura 1: " + altura1 + " - altura 2: " + altura2 + " - altura 3: " + altura3 + " - altura 4: " + altura4);
+
+            //Define altura do top que cada imagem ira aparecer na tela Pedido
+            switch (andares) {
+
+                case 1:
+                    //alert("altura2: " + altura2);
+                    document.getElementById("divAlturaTampa").style.top = altura1;
+
+                    document.getElementById("divAlturaAndar1").style.top = altura2;
+                    document.getElementById("divAlturaLaminaAndar1Pos1").style.top = altura2;
+                    document.getElementById("divAlturaLaminaAndar1Pos2").style.top = altura2;
+                    document.getElementById("divAlturaLaminaAndar1Pos3").style.top = altura2;
+                    document.getElementById("divAlturaPadraoAndar1Pos1").style.top = altura2;
+                    document.getElementById("divAlturaPadraoAndar1Pos2").style.top = altura2;
+
+
+                    document.getElementById("divAlturaAndar2").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar2Pos1").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar2Pos2").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar2Pos3").style.display = 'none';
+                    document.getElementById("divAlturaPadraoAndar2Pos1").style.display = 'none';
+                    document.getElementById("divAlturaPadraoAndar2Pos2").style.display = 'none';
+
+
+                    document.getElementById("divAlturaAndar3").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar3Pos1").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar3Pos2").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar3Pos3").style.display = 'none';
+                    document.getElementById("divAlturaPadraoAndar3Pos1").style.display = 'none';
+                    document.getElementById("divAlturaPadraoAndar3Pos2").style.display = 'none';
+
+
+                    break;
+
+                case 2:
+                    //alert("AQUI-2 " + andares);
+                    document.getElementById("divAlturaTampa").style.top = altura1;
+
+                    document.getElementById("divAlturaAndar1").style.top = altura3;
+                    document.getElementById("divAlturaLaminaAndar1Pos1").style.top = altura3;
+                    document.getElementById("divAlturaLaminaAndar1Pos2").style.top = altura3;
+                    document.getElementById("divAlturaLaminaAndar1Pos3").style.top = altura3;
+                    document.getElementById("divAlturaPadraoAndar1Pos1").style.top = altura3;
+                    document.getElementById("divAlturaPadraoAndar1Pos2").style.top = altura3;
+
+                    document.getElementById("divAlturaAndar2").style.display = 'flex';
+                    document.getElementById("divAlturaAndar2").style.top = altura2;
+
+                    document.getElementById("divAlturaLaminaAndar2Pos1").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar2Pos1").style.top = altura2;
+
+                    document.getElementById("divAlturaLaminaAndar2Pos2").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar2Pos2").style.top = altura2;
+
+                    document.getElementById("divAlturaLaminaAndar2Pos3").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar2Pos3").style.top = altura2;
+
+                    document.getElementById("divAlturaPadraoAndar2Pos1").style.display = 'flex';
+                    document.getElementById("divAlturaPadraoAndar2Pos1").style.top = altura2;
+
+                    document.getElementById("divAlturaPadraoAndar2Pos2").style.display = 'flex';
+                    document.getElementById("divAlturaPadraoAndar2Pos2").style.top = altura2;
+
+                    document.getElementById("divAlturaAndar3").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar3Pos1").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar3Pos2").style.display = 'none';
+                    document.getElementById("divAlturaLaminaAndar3Pos3").style.display = 'none';
+                    document.getElementById("divAlturaPadraoAndar3Pos1").style.display = 'none';
+                    document.getElementById("divAlturaPadraoAndar3Pos2").style.display = 'none';
+
+
+                    break;
+                case 3:
+                    //alert("AQUI-3 " + andares);
+                    document.getElementById("divAlturaTampa").style.top = altura1;
+                    //document.getElementById("divAlturaTampa").style.display = 'none';
+
+                    document.getElementById("divAlturaAndar1").style.top = altura4;
+                    document.getElementById("divAlturaLaminaAndar1Pos1").style.top = altura4;
+                    document.getElementById("divAlturaLaminaAndar1Pos2").style.top = altura4;
+                    document.getElementById("divAlturaLaminaAndar1Pos3").style.top = altura4;
+                    document.getElementById("divAlturaPadraoAndar1Pos1").style.top = altura4;
+                    document.getElementById("divAlturaPadraoAndar1Pos2").style.top = altura4;
+
+                    document.getElementById("divAlturaAndar2").style.display = 'flex';
+                    document.getElementById("divAlturaAndar2").style.top = altura3;
+
+                    document.getElementById("divAlturaLaminaAndar2Pos1").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar2Pos1").style.top = altura3;
+
+                    document.getElementById("divAlturaLaminaAndar2Pos2").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar2Pos2").style.top = altura3;
+
+                    document.getElementById("divAlturaLaminaAndar2Pos3").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar2Pos3").style.top = altura3;
+                    document.getElementById("divAlturaPadraoAndar2Pos1").style.top = altura3;
+
+                    document.getElementById("divAlturaPadraoAndar2Pos2").style.display = 'flex';
+                    document.getElementById("divAlturaPadraoAndar2Pos2").style.top = altura3;
+
+
+                    document.getElementById("divAlturaAndar3").style.display = 'flex';
+                    document.getElementById("divAlturaAndar3").style.top = altura2;
+
+                    document.getElementById("divAlturaLaminaAndar3Pos1").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar3Pos1").style.top = altura2;
+
+                    document.getElementById("divAlturaLaminaAndar3Pos2").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar3Pos2").style.top = altura2;
+
+                    document.getElementById("divAlturaLaminaAndar3Pos3").style.display = 'flex';
+                    document.getElementById("divAlturaLaminaAndar3Pos3").style.top = altura2;
+
+                    document.getElementById("divAlturaPadraoAndar3Pos1").style.display = 'flex';
+                    document.getElementById("divAlturaPadraoAndar3Pos1").style.top = altura2;
+
+                    document.getElementById("divAlturaPadraoAndar3Pos2").style.display = 'flex';
+                    document.getElementById("divAlturaPadraoAndar3Pos2").style.top = altura2;
+
+
+                    break;
+
+                default:
+                    //alert("AQUI-0");
+                    document.getElementById("divAlturaAndar1").style.top = "0px";
+                    document.getElementById("divAlturaAndar2").style.top = "0px";
+                    document.getElementById("divAlturaAndar3").style.top = "0px";
+            }
+
+            document.getElementById("pedido-pronto").style.display = "flex";
+
+        }
+
+        // Variável para controle do giro
+        let isSpun = false;
+
+        // função para atualizar a visualização do pedido conforme está sendo construido
+        function changePedidoView(id, lamina) {
+
+            const blockColor = document.getElementById("block-color-" + id).value;
+
+
+            if (blockColor !== "") {
+                // alert("Aqui-2 : " + id);
+                const idCor = (blockColor === "preto" ? 1 : blockColor === "vermelho" ? 2 : 3);
+                // Atualiza a imagem do bloco com base na cor
+                document.getElementById("bloco-" + id).src = "assets/bloco/rBlocoCor" + idCor + ".png";
+
+                // Habilita os selects de cor
+                ["l1-color-", "l2-color-", "l3-color-", "spin"].forEach(prefix => {
+                    document.getElementById(prefix + id).disabled = false;
+                });
+
+                const l1Color = document.getElementById("l1-color-" + id).value;
+
+                // console.log("l1Color = " + l1Color);
+
+                const l2Color = document.getElementById("l2-color-" + id).value;
+                const l3Color = document.getElementById("l3-color-" + id).value;
+                //console.log("COR L2: " + l2Color);
+
+                const l1Pattern = document.getElementById("l1-pattern-" + id).value;
+                const l2Pattern = document.getElementById("l2-pattern-" + id).value;
+                const l3Pattern = document.getElementById("l3-pattern-" + id).value;
+
+                const view = document.getElementById("pedido-view" + id);
+                const isSpun = view.dataset.isSpun === "true";
+
+
+                // Atualiza as lâminas e padrões dependendo do giro
+                if (isSpun) {
+                    document.getElementById("lamina" + id + "-3").src = l1Color ? "assets/laminas/lamina3-" + l1Color + ".png" : "assets/laminas/lamina3-0.png";
+                    document.getElementById("lamina" + id + "-1").src = l3Color ? "assets/laminas/lamina1-" + l3Color + ".png" : "assets/laminas/lamina1-0.png";
+
+                    const padrao3 = document.getElementById("padrao" + id + "-3");
+                    const padrao1 = document.getElementById("padrao" + id + "-1");
+
+                    padrao3.src = l3Pattern ? "assets/padroes/rpadrao" + l3Pattern + "-1.png" : "assets/padroes/rpadrao0-1.png";
+                    padrao3.hidden = false;
+
+                    if (l3Color == 5) {
+                        document.getElementById("padrao" + id + "-3").style.filter = "invert(1)"
+                    } else {
+                        document.getElementById("padrao" + id + "-3").style.filter = "invert(0)"
+                    }
+
+                    padrao1.src = l1Pattern ? "assets/padroes/rpadrao" + l1Pattern + "-1.png" : "assets/padroes/rpadrao0-1.png";
+                    padrao1.hidden = true;
+
+                    if (l1Color == 5) {
+                        document.getElementById("padrao" + id + "-1").style.filter = "invert(1)"
+                    } else {
+                        document.getElementById("padrao" + id + "-1").style.filter = "invert(0)"
+                    }
+
+                } else {
+                    document.getElementById("lamina" + id + "-1").src = l1Color ? "assets/laminas/lamina1-" + l1Color + ".png" : "assets/laminas/lamina1-0.png";
+                    document.getElementById("lamina" + id + "-3").src = l3Color ? "assets/laminas/lamina3-" + l3Color + ".png" : "assets/laminas/lamina3-0.png";
+
+                    const padrao1 = document.getElementById("padrao" + id + "-1");
+                    const padrao3 = document.getElementById("padrao" + id + "-3");
+
+                    padrao1.src = l1Pattern ? "assets/padroes/rpadrao" + l1Pattern + "-1.png" : "assets/padroes/rpadrao0-1.png";
+                    padrao1.hidden = false;
+
+                    if (l1Color == 5) {
+                        document.getElementById("padrao" + id + "-1").style.filter = "invert(1)"
+                    } else {
+                        document.getElementById("padrao" + id + "-1").style.filter = "invert(0)"
+                    }
+
+                    padrao3.src = l3Pattern ? "assets/padroes/rpadrao" + l3Pattern + "-1.png" : "assets/padroes/rpadrao0-1.png";
+                    padrao3.hidden = true;
+
+                    if (l3Color == 5) {
+                        document.getElementById("padrao" + id + "-3").style.filter = "invert(1)"
+                    } else {
+                        document.getElementById("padrao" + id + "-3").style.filter = "invert(0)"
+                    }
+                }
+
+                // Atualiza lâmina/padrão do meio
+                document.getElementById("lamina" + id + "-2").src = l2Color ? "assets/laminas/lamina2-" + l2Color + ".png" : "assets/laminas/lamina2-0.png";
+                document.getElementById("padrao" + id + "-2").src = l2Pattern ? "assets/padroes/rpadrao" + l2Pattern + "-2.png" : "assets/padroes/rpadrao0-2.png";
+
+                if (l2Color == 5) {
+                    document.getElementById("padrao" + id + "-2").style.filter = "invert(1)"
+                } else {
+                    document.getElementById("padrao" + id + "-2").style.filter = "invert(0)"
+                }
+
+                // Habilita os padrões caso uma cor esteja selecionada
+                ["l1-pattern-", "l2-pattern-", "l3-pattern-"].forEach((prefix, index) => {
+                    const color = [l1Color, l2Color, l3Color][index];
+                    document.getElementById(prefix + id).disabled = !color;
+                });
+
+            } else {
+                // Desabilita todos os campos e limpa imagens
+                ["l1-color-", "l2-color-", "l3-color-", "l1-pattern-", "l2-pattern-", "l3-pattern-"].forEach(prefix => {
+                    document.getElementById(prefix + id).disabled = true;
+                });
+
+                document.getElementById("send-" + id).disabled = true;
+                document.getElementById("bloco-" + id).src = "assets/bloco/rBlocoCor0.png";
+
+                ["lamina", "padrao"].forEach(prefix => {
+                    for (let i = 1; i <= 3; i++) {
+                        document.getElementById(prefix + id + "-" + i).src = "assets/padroes/rpadrao0-1.png";
+                    }
+                });
+            }
+            revisarPedido();
+        }
+
+        // Gira o pedido (espelha as lâminas/padrões 1 e 3)
+        function spin(id) {
+            //alert("Aqui em SPIN");
+            const view = document.getElementById("pedido-view" + id);
+            view.dataset.isSpun = view.dataset.isSpun || "false";
+            view.classList.toggle("spin");
+
+            const isSpun = view.dataset.isSpun !== "true";
+            view.dataset.isSpun = isSpun;
+
+            const lamina1 = document.getElementById("lamina" + id + "-1");
+            const lamina3 = document.getElementById("lamina" + id + "-3");
+
+
+            const src1 = lamina1.src;
+            const src3 = lamina3.src;
+
+            console.log(src1);
+            console.log(src3);
+
+            const newSrc3 = src1.replace(/lamina\d-(\d)/, `lamina3-$1`);
+            const newSrc1 = src3.replace(/lamina\d-(\d)/, `lamina1-$1`);
+
+            document.getElementById("padrao" + id + "-3").hidden = !isSpun;
+            document.getElementById("padrao" + id + "-1").hidden = isSpun;
+
+            lamina1.src = newSrc1;
+            lamina3.src = newSrc3;
+        }
+
+        function salvarPedido() {
+            const tipo = document.getElementById("tipoPedido").value;
+            const tampa = document.getElementById("corTampa").value;
+            const blocos = document.querySelectorAll(".bloco");
+
+            const pedido = {
+                tipo: tipo,
+                tampa: tampa,
+                blocos: [],
+                statusOrderProduction: "pendente",
+                timeStamp: new Date().toISOString()
+            };
+
+            blocos.forEach((blocoElement, index) => {
+                const b = index + 1;
+
+                let corBloco = 3;
+                const corValue = document.getElementById(`block-color-${b}`).value.toLowerCase();
+                if (corValue === "preto") corBloco = 1;
+                else if (corValue === "vermelho") corBloco = 2;
+
+                const laminas = [];
+                for (let i = 1; i <= 3; i++) {
+                    let cor = parseInt(document.getElementById(`l${i}-color-${b}`).value) || 0;
+                    let padrao = parseInt(document.getElementById(`l${i}-pattern-${b}`).value) || 0;
+                    laminas.push({ cor, padrao });
+                }
+
+                pedido.blocos.push({
+                    andar: b,
+                    corBloco: corBloco,
+                    laminas: laminas
+                });
+            });
+
+            fetch("/salvar-pedidos", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pedido)
+            }).then(res => res.json())
+                .then(id => {
+                    document.getElementById("pedido-id").innerText = `Pedido #${id}`;
+                    alert("Pedido enviado com sucesso!");
+                    if (typeof listarPedidos === "function") listarPedidos();
+                })
+                .catch(err => {
+                    console.error("Erro na requisição:", err);
+                    alert("Erro ao enviar pedido.");
+                });
+        }
+
+
+        // função teste de envio de pedido
+        function enviarPedidoTeste() {
+            const pedido = {
+                tipo: "simples",
+                tampa: "preto",
+                blocos: [
+                    {
+                        andar: 1,
+                        corBloco: 2,
+                        laminas: [
+                            { cor: 1, padrao: 0 },
+                            { cor: 2, padrao: 1 },
+                            { cor: 3, padrao: 2 }
+                        ]
+                    }
+                ]
+            };
+
+            // Teste se este log aparece no console
+            console.log("Pedido a ser enviado:", JSON.stringify([pedido], null, 2));
+
+            // Simulação de envio
+            fetch("/salvar-pedidos", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify([pedido])
+            }).then(res => {
+                if (res.ok) {
+                    alert("Pedido enviado com sucesso!");
+                } else {
+                    alert("Erro ao enviar pedido.");
+                }
+            });
+        }
+
+        function executarPedido() {
+            const tipo = document.getElementById("tipoPedido").value;
+            const tampa = document.getElementById("corTampa").value;
+            const ipClp = document.getElementById("hostIpEstoque").value;
+
+            if (!ipClp) {
+                alert("Por favor, informe o IP do CLP.");
+                return;
+            }
+
+            // Extrai o ID do pedido a partir do <p id="pedido-id">
+            const textoPedido = document.getElementById("pedido-id").innerText;
+            const match = textoPedido.match(/#(\d+)/);
+            const pedidoId = match ? parseInt(match[1]) : null;
+
+            if (!pedidoId) {
+                alert("ID do pedido não encontrado!");
+                return;
+            }
+
+            let blocosCount = tipo === "simples" ? 1 : tipo === "duplo" ? 2 : 3;
+            let blocos = [];
+
+            for (let b = 1; b <= blocosCount; b++) {
+                const corBlocoInput = document.getElementById(`block-color-${b}`);
+                let corBloco = 3;
+                if (corBlocoInput.value === "preto") corBloco = 1;
+                else if (corBlocoInput.value === "vermelho") corBloco = 2;
+
+                let bloco = {
+                    andar: b,
+                    corBloco: corBloco,
+                    laminas: []
+                };
+
+                for (let l = 1; l <= 3; l++) {
+                    const cor = parseInt(document.getElementById(`l${l}-color-${b}`).value) || 0;
+                    const padrao = parseInt(document.getElementById(`l${l}-pattern-${b}`).value) || 0;
+
+                    bloco.laminas.push({ numero: l, cor, padrao });
+                }
+
+                blocos.push(bloco);
+            }
+
+            const pedidoDTO = {
+                id: pedidoId,
+                tipo: tipo,
+                tampa: tampa,
+                ipClp: ipClp,
+                blocos: blocos
+            };
+
+            fetch("/iniciar-pedido", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(pedidoDTO)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Pedido executado com sucesso!");
+                        if (typeof atualizarStatusPedidoConcluido === "function") {
+                            atualizarStatusPedidoConcluido(pedidoId);
+                        }
+                    } else {
+                        alert("Erro ao executar pedido.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro na requisição:", error);
+                    alert("Erro na comunicação com o servidor.");
+                });
+        }
+
+    </script>
+</div>
