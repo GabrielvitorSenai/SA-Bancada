@@ -36,6 +36,7 @@ public class ClpController {
     private final ScheduledExecutorService leituraExecutor = Executors.newScheduledThreadPool(4);
     private final Map<String, ScheduledFuture<?>> leituraFutures = new ConcurrentHashMap<>();
 
+    //private static byte[] dadosClp1 = new byte[0];
     private static byte[] dadosClp1;
     private static byte[] dadosClp2;
     private static byte[] dadosClp3;
