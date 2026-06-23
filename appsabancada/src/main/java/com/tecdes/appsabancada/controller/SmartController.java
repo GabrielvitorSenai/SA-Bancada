@@ -154,7 +154,7 @@ public class SmartController {
             // 2) Selecionar a tampa
             try {
                 RestTemplate apiSeletorTampa = new RestTemplate();
-                String url = "http://10.74.241.254:80/api/move_pos=" + tampa;
+                String url = "http://10.74.241.254:80/api/move_pos=1" + tampa;
 
                 // Lê resposta como Map para interpretar o JSON {"status": "..."}
                 ResponseEntity<Map> response = apiSeletorTampa.getForEntity(url, Map.class);
